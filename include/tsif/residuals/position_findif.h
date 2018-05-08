@@ -21,7 +21,7 @@ class PositionFindif: public PositionFindifBase<OUT_POS,STA_POS,STA_VEL,STA_ATT>
   typedef typename Base::Output Output;
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
-  PositionFindif(): Base(true,true,true){}
+  PositionFindif(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true): Base(isSplitable,isMergeable,isMandatory){}
   int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
     out.template Get<OUT_POS>() = cur.template Get<STA_POS>() - pre.template Get<STA_POS>()
       - dt_*pre.template Get<STA_ATT>().toRotationMatrix()*pre.template Get<STA_VEL>();

@@ -26,7 +26,8 @@ class BearingFindif: public BearingFindifBase<OUT_BEA,STA_BEA,STA_DIS,STA_VEL,ST
   typedef typename Base::Output Output;
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
-  BearingFindif(): Base(true,true,true), vep_not_fixed_(STA_VEP>=0), vea_not_fixed_(STA_VEA>=0){}
+  BearingFindif(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true):
+    Base(isSplitable,isMergeable,isMandatory), vep_not_fixed_(STA_VEP>=0), vea_not_fixed_(STA_VEA>=0){}
   int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
     UnitVector n_predicted;
     const Mat3 C_VI = pre.template Get<STA_VEA>().toRotationMatrix();
