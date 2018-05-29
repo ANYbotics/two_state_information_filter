@@ -22,7 +22,7 @@ class RandomWalk: public RandomWalkBase<Elements...>{
   typedef typename Base::Output Output;
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
-  RandomWalk(): Base(true,true,true){}
+  RandomWalk(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true): Base(isSplitable,isMergeable,isMandatory){}
   int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
     _EvalRes(out,pre,cur);
     return 0;
