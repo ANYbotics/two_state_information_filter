@@ -2,8 +2,8 @@
 #include "tsif/filters/vio.h"
 
 int main(int argc, char** argv){
-  std::string optionFile = "/home/tree/git/two_state_information_filter/cfg/vio.cfg";
-  std::string taskFile = "/home/tree/git/two_state_information_filter/cfg/vio_task.cfg";
+  std::string optionFile = "/home/michael/workspace/generalized_information_filter/cfg/vio.cfg";
+  std::string taskFile = "/home/michael/workspace/generalized_information_filter/cfg/vio_task.cfg";
   bool useSim = tsif::OptionLoader::Instance().Get<int>(optionFile,"use_sim");
   const int L = 25;
   tsif::VioFilter<L> filter(optionFile);
@@ -23,8 +23,6 @@ int main(int argc, char** argv){
   std::string imu0string;
   getline(imu0data, imu0string); // Ignore first
   double imu0time = std::numeric_limits<double>::min();
-
-  tsif::Timer timer;
 
   for(int i=0;i<10000 && cam0data.good();i++){
     if(useSim){
@@ -83,10 +81,8 @@ int main(int argc, char** argv){
       }
     }
 
-    timer.GetIncr();
     filter.Update();
-    std::cout << "====================\n" << filter.GetState().Print();
-    std::cout << "Update time: " << 1000*timer.GetIncr() << std::endl;
+//    std::cout << "====================\n" << filter.GetState().Print();
 
     //    const tsif::Vec3 IrIM = sim.sim_IrIM_;
     //    const tsif::Quat qIM = sim.sim_qIM_;
