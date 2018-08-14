@@ -3,29 +3,11 @@
 namespace tsif{
 
   Camera::Camera(){
-    k1_ = -0.28340811; k2_ = 0.07395907; k3_ = 0.0; k4_ = 0.0; k5_ = 0.0; k6_ = 0.0;
-    p1_ = 0.00019359; p2_ = 1.76187114e-05; s1_ = 0.0; s2_ = 0.0; s3_ = 0.0; s4_ = 0.0;
+    k1_ = 0.0; k2_ = 0.0; k3_ = 0.0; k4_ = 0.0; k5_ = 0.0; k6_ = 0.0;
+    p1_ = 0.0; p2_ = 0.0; s1_ = 0.0; s2_ = 0.0; s3_ = 0.0; s4_ = 0.0;
     K_.setIdentity();
-    K_(0,0) = 458.654;
-    K_(0,2) = 367.215;
-    K_(1,1) = 457.296;
-    K_(1,2) = 248.375;
-    type_ = RADTAN;
+    type_ = NONE;
   };
-
-  Camera::~Camera(){};
-
-  void Camera::LoadCameraMatrix(const std::string& filename){
-  }
-
-  void Camera::LoadRadtan(const std::string& filename){
-  }
-
-  void Camera::LoadEquidist(const std::string& filename){
-  }
-
-  void Camera::Load(const std::string& filename){
-  }
 
   void Camera::DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out) const{
     const double x2 = in(0) * in(0);
@@ -36,6 +18,7 @@ namespace tsif{
     out(0) = in(0) * kr + p1_ * 2 * xy + p2_ * (r2 + 2 * x2);
     out(1) = in(1) * kr + p1_ * (r2 + 2 * y2) + p2_ * 2 * xy;
   }
+
   void Camera::DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const{
     const double x2 = in(0) * in(0);
     const double y2 = in(1) * in(1);
@@ -72,6 +55,7 @@ namespace tsif{
     out(0) = in(0) * s;
     out(1) = in(1) * s;
   }
+
   void Camera::DistortEquidist(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const{
     const double x2 = in(0) * in(0);
     const double y2 = in(1) * in(1);
@@ -120,6 +104,7 @@ namespace tsif{
         break;
     }
   }
+
   void Camera::Distort(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const{
     switch(type_){
       case RADTAN:
@@ -148,6 +133,7 @@ namespace tsif{
     c(1) = K_(1, 1)*distorted(1) + K_(1, 2);
     return true;
   }
+  
   bool Camera::BearingToPixel(const Eigen::Vector3d& vec, Eigen::Vector2d& c, Eigen::Matrix<double,2,3>& J) const{
     // Project
     if(vec(2)<=1e-8) return false;
@@ -207,58 +193,4 @@ namespace tsif{
     return success;
   }
 
-  void Camera::TestCameraModel(){
-//    double d = 1e-4;
-//    LWF::NormalVectorElement b_s;
-//    LWF::NormalVectorElement b_s1;
-//    LWF::NormalVectorElement b_s2;
-//    Eigen::Vector3d v_s;
-//    Eigen::Vector3d v_s1;
-//    Eigen::Vector3d v_s2;
-//    LWF::NormalVectorElement b_e;
-//    Eigen::Matrix2d J1;
-//    Eigen::Matrix2d J1_FD;
-//    Eigen::Matrix<double,2,3> J2;
-//    Eigen::Matrix<double,2,3> J2_FD;
-//    Eigen::Vector2d p_s;
-//    Eigen::Vector2d p_s1;
-//    Eigen::Vector2d p_s2;
-//    Eigen::Vector2d p_s3;
-//    Eigen::Vector2d diff;
-//    for(unsigned int s = 1; s<10;){
-//      b_s.setRandom(s);
-//      if(b_s.getVec()(2)<0) b_s = b_s.inverted();
-//      BearingToPixel(b_s,p_s,J1);
-//      pixelToBearing(p_s,b_e);
-//      b_s.boxMinus(b_e,diff);
-//      std::cout << b_s.getVec().transpose() << std::endl;
-//      std::cout << "Error after back and forward mapping: " << diff.norm() << std::endl;
-//      diff = Eigen::Vector2d(d,0);
-//      b_s.boxPlus(diff,b_s1);
-//      BearingToPixel(b_s1,p_s1);
-//      J1_FD(0,0) = static_cast<double>((p_s1-p_s).x)/d;
-//      J1_FD(1,0) = static_cast<double>((p_s1-p_s).y)/d;
-//      diff = Eigen::Vector2d(0,d);
-//      b_s.boxPlus(diff,b_s2);
-//      BearingToPixel(b_s2,p_s2);
-//      J1_FD(0,1) = static_cast<double>((p_s2-p_s).x)/d;
-//      J1_FD(1,1) = static_cast<double>((p_s2-p_s).y)/d;
-//      std::cout << J1 << std::endl;
-//      std::cout << J1_FD << std::endl;
-//
-//      v_s = b_s.getVec();
-//      BearingToPixel(v_s,p_s,J2);
-//      BearingToPixel(v_s + Eigen::Vector3d(d,0,0),p_s1);
-//      BearingToPixel(v_s + Eigen::Vector3d(0,d,0),p_s2);
-//      BearingToPixel(v_s + Eigen::Vector3d(0,0,d),p_s3);
-//      J2_FD(0,0) = static_cast<double>((p_s1-p_s).x)/d;
-//      J2_FD(1,0) = static_cast<double>((p_s1-p_s).y)/d;
-//      J2_FD(0,1) = static_cast<double>((p_s2-p_s).x)/d;
-//      J2_FD(1,1) = static_cast<double>((p_s2-p_s).y)/d;
-//      J2_FD(0,2) = static_cast<double>((p_s3-p_s).x)/d;
-//      J2_FD(1,2) = static_cast<double>((p_s3-p_s).y)/d;
-//      std::cout << J2 << std::endl;
-//      std::cout << J2_FD << std::endl;
-//    }
-  }
 }

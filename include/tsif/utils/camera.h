@@ -9,7 +9,8 @@ class Camera{
  public:
   enum ModelType{
     RADTAN,
-    EQUIDIST
+    EQUIDIST,
+    NONE
   } type_;
 
   Eigen::Matrix3d K_;
@@ -18,11 +19,8 @@ class Camera{
   double p1_,p2_,s1_,s2_,s3_,s4_;
 
   Camera();
-  ~Camera();
-  void LoadCameraMatrix(const std::string& filename);
-  void LoadRadtan(const std::string& filename);
-  void LoadEquidist(const std::string& filename);
-  void Load(const std::string& filename);
+  virtual ~Camera() = default;
+
   void DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out) const;
   void DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const;
   void DistortEquidist(const Eigen::Vector2d& in, Eigen::Vector2d& out) const;
@@ -32,7 +30,6 @@ class Camera{
   bool BearingToPixel(const Eigen::Vector3d& vec, Eigen::Vector2d& c) const;
   bool BearingToPixel(const Eigen::Vector3d& vec, Eigen::Vector2d& c, Eigen::Matrix<double,2,3>& J) const;
   bool PixelToBearing(const Eigen::Vector2d& c,Eigen::Vector3d& vec) const;
-  void TestCameraModel();
 };
 
 }
