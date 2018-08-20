@@ -138,8 +138,8 @@ class Filter{
   virtual void ComputeLinearizationPoint(const TimePoint& t){
     curLinState_ = state_;
   }
-  virtual void PreProcess(){};
-  virtual void PostProcess(){};
+  virtual void PreProcess(const TimePoint& t){};
+  virtual void PostProcess(const TimePoint& t){};
 
   void Update(){
     // Initialize if possible
@@ -183,7 +183,7 @@ class Filter{
 
     // Check available measurements and prepare residuals
     int innDim = PreProcessResidual(t);
-    PreProcess();
+    PreProcess(t);
 
     // Temporaries
     y_.resize(innDim);
@@ -236,7 +236,7 @@ class Filter{
     TSIF_LOG("Information matrix:\n" << I_);
 
     // Post Processing
-    PostProcess();
+    PostProcess(t);
     time_ = t;
   }
 
