@@ -52,24 +52,24 @@ class UnitVector{
     M.col(1) = GetPerp2();
     return M;
   }
-  void Boxplus(const VecCRef<2>& dif, UnitVector& out) const{
+  void Boxplus(const VecCRef2& dif, UnitVector& out) const{
     out.SetQuat(Exp(dif(0)*GetPerp1()+dif(1)*GetPerp2())*q_);
   }
-  void Boxminus(const UnitVector& ref, VecRef<2> dif) const{
+  void Boxminus(const UnitVector& ref, VecRef2 dif) const{
     dif = ref.GetN().transpose()*Log(Quat::FromTwoVectors(ref.GetVec(),GetVec()));
   }
-  void BoxminusJacRef(const UnitVector& ref, MatRef<2> J) const{
+  void BoxminusJacRef(const UnitVector& ref, MatRef2 J) const{
     J = ref.GetN().transpose()*FromTwoVectorsJac(ref.GetVec(),GetVec())*ref.GetM();
   }
-  void BoxminusJacInp(const UnitVector& ref, MatRef<2> J) const{
+  void BoxminusJacInp(const UnitVector& ref, MatRef2 J) const{
     J = -ref.GetN().transpose()*FromTwoVectorsJac(GetVec(),ref.GetVec())*GetM();
   }
-  void BoxplusJacVec(const VecCRef<2>& dif, MatRef<2> J) const{
+  void BoxplusJacVec(const VecCRef2& dif, MatRef2 J) const{
     UnitVector out;
     Boxplus(dif,out);
     J = out.GetN().transpose()*GammaMat(dif(0)*GetPerp1()+dif(1)*GetPerp2())*GetN();
   }
-  void BoxplusJacInp(const VecCRef<2>& dif, MatRef<2> J) const{
+  void BoxplusJacInp(const VecCRef2& dif, MatRef2 J) const{
     UnitVector out;
     Boxplus(dif,out);
     J = out.GetN().transpose()*GetN();

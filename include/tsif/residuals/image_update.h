@@ -7,7 +7,7 @@
 namespace tsif{
 
 template<int OUT_RES, int STA_BEA, int N, typename MEAS>
-using ImageUpdateBase = Residual<ElementVector<Element<std::array<Vec<2>,N>,OUT_RES>>,
+using ImageUpdateBase = Residual<ElementVector<Element<std::array<Vec2,N>,OUT_RES>>,
                                  ElementVector<>,
                                  ElementVector<Element<std::array<UnitVector,N>,STA_BEA>>,
                                  MEAS>;

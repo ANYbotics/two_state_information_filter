@@ -7,7 +7,7 @@
 namespace tsif{
 
 template<int OUT_BEA, int STA_BEA, int STA_DIS, int STA_VEL, int STA_ROR, int STA_VEP, int STA_VEA, int N>
-using BearingFindifBase = Residual<ElementVector<Element<std::array<Vec<2>,N>,OUT_BEA>>,
+using BearingFindifBase = Residual<ElementVector<Element<std::array<Vec2,N>,OUT_BEA>>,
                                    ElementVector<Element<std::array<UnitVector,N>,STA_BEA>,
                                                  Element<std::array<double,N>,STA_DIS>,
                                                  Element<Vec3,STA_VEL>,
@@ -38,7 +38,7 @@ class BearingFindif: public BearingFindifBase<OUT_BEA,STA_BEA,STA_DIS,STA_VEL,ST
       const Vec3 beaVec = bea.GetVec();
       const Mat<3,2> beaN = bea.GetN();
       const double& invDis = pre.template Get<STA_DIS>()[i];
-      const Vec<2> dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
+      const Vec2 dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
       bea.Boxplus(dn*dt_,n_predicted);
       n_predicted.Boxminus(cur.template Get<STA_BEA>()[i],out.template Get<OUT_BEA>()[i]); // CAREFUL: DO NOT INVERSE BOXMINUS ORDER (CHAIN-RULE NOT VALID)
     }
@@ -59,9 +59,9 @@ class BearingFindif: public BearingFindifBase<OUT_BEA,STA_BEA,STA_DIS,STA_VEL,ST
       const Vec3 beaVec = bea.GetVec();
       const Mat<3,2> beaN = bea.GetN();
       const double& invDis = pre.template Get<STA_DIS>()[i];
-      const Vec<2> dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
+      const Vec2 dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
       bea.Boxplus(dn*dt_,n_predicted);
-      Mat<2> Jsub_1;
+      Mat2 Jsub_1;
       n_predicted.BoxminusJacRef(cur.template Get<STA_BEA>()[i],Jsub_1);
       J.block<2,2>(Output::Start(OUT_BEA)+2*i,cur.Start(STA_BEA)+2*i) = Jsub_1;
     }
@@ -79,9 +79,9 @@ class BearingFindif: public BearingFindifBase<OUT_BEA,STA_BEA,STA_DIS,STA_VEL,ST
       const Mat<3,2> beaN = bea.GetN();
       const Mat<3,2> beaM = bea.GetM();
       const double& invDis = pre.template Get<STA_DIS>()[i];
-      const Vec<2> dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
+      const Vec2 dn = -beaN.transpose()*(ror + invDis * beaVec.cross(vel));
       bea.Boxplus(dn*dt_,n_predicted);
-      Mat<2> Jsub_1,Jsub_2a, Jsub_2b;
+      Mat2 Jsub_1,Jsub_2a, Jsub_2b;
       bea.BoxplusJacInp(dn*dt_,Jsub_2a);
       bea.BoxplusJacVec(dn*dt_,Jsub_2b);
       if(predictionOnly){

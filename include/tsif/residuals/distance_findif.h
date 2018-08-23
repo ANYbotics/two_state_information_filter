@@ -7,7 +7,7 @@
 namespace tsif{
 
 template<int OUT_DIS, int STA_BEA, int STA_DIS, int STA_VEL, int STA_ROR, int STA_VEP, int STA_VEA, int N>
-using DistanceFindifBase = Residual<ElementVector<Element<std::array<Vec<1>,N>,OUT_DIS>>,
+using DistanceFindifBase = Residual<ElementVector<Element<std::array<double,N>,OUT_DIS>>,
                                     ElementVector<Element<std::array<UnitVector,N>,STA_BEA>,
                                                   Element<std::array<double,N>,STA_DIS>,
                                                   Element<Vec3,STA_VEL>,
@@ -35,7 +35,7 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
       const UnitVector& bea = pre.template Get<STA_BEA>()[i];
       const Vec3 beaVec = bea.GetVec();
       const double& invDis = pre.template Get<STA_DIS>()[i];
-      out.template Get<OUT_DIS>()[i](0) = invDis + dt_*beaVec.dot(vel)*invDis*invDis - cur.template Get<STA_DIS>()[i];
+      out.template Get<OUT_DIS>()[i] = invDis + dt_*beaVec.dot(vel)*invDis*invDis - cur.template Get<STA_DIS>()[i];
     }
     return 0;
   }
@@ -50,7 +50,7 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
       const Mat<1,3> J_vel = dt_*beaVec.transpose()*invDis*invDis;
       J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEL)) = J_vel*C_VI;
       J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_ROR)) = -J_vel*C_VI*SSM(pre.template Get<STA_VEP>());
-      J.block<1,1>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_DIS)+1*i) = Mat<1>::Identity()+dt_*2*beaVec.transpose()*vel*invDis;
+      J.block<1,1>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_DIS)+1*i) = Mat1::Identity()+dt_*2*beaVec.transpose()*vel*invDis;
       J.block<1,2>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_BEA)+2*i) = dt_*vel.transpose()*invDis*invDis*bea.GetM();
       if (vep_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEP)) = J_vel*C_VI*SSM(pre.template Get<STA_ROR>());
       if (vea_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEA)) = - J_vel*SSM(vel);
@@ -60,7 +60,7 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
   int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
     J.setZero();
     for(int i=0;i<N;i++){
-      J.block<1,1>(Output::Start(OUT_DIS)+1*i,cur.Start(STA_DIS)+1*i) = -Mat<1>::Identity();
+      J.block<1,1>(Output::Start(OUT_DIS)+1*i,cur.Start(STA_DIS)+1*i) = -Mat1::Identity();
     }
     return 0;
   }

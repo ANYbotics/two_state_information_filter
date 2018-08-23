@@ -176,7 +176,7 @@ class ElementTraits<double>{
     return -Mat<kDim>::Identity();
   }
   static Vec<kDim> GetVec(const double& x){
-    return Vec<1>(x);
+    return Vec1(x);
   }
   static void Scale(double w, double& x){
     x *= w;
@@ -413,7 +413,7 @@ class ElementTraits<std::array<T, N>>{
   static Vec<kDim> GetVec(const array& x){
     Vec<kDim> vec;
     for (int i = 0; i < N; i++){
-      vec.template segment<kElementDim>(i * kElementDim) = x.at(i);
+      vec.template segment<kElementDim>(i * kElementDim) = Traits::GetVec(x.at(i));
     }
     return vec;
   }
