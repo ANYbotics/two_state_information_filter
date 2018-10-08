@@ -141,7 +141,7 @@ class Filter{
   virtual void PreProcess(){};
   virtual void PostProcess(){};
 
-  void Update(){
+  bool Update(){
     // Initialize if possible
     if(!is_initialized_){
       Init(GetMaxMinTime());
@@ -167,6 +167,8 @@ class Filter{
       TSIF_LOG("Timelines after split and merging:");
       PrintTimelines(time_, 20, 0.001);
 
+      if (times.empty()) return false;
+
       // Carry out updates
       for (const auto& t : times){
         MakeUpdateStep(t);
@@ -175,6 +177,8 @@ class Filter{
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
     }
+
+    return true;
   }
 
   void MakeUpdateStep(TimePoint t){
