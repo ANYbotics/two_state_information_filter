@@ -44,6 +44,7 @@ class Filter{
     return current;
   }
 
+
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetCurrentTime(){
     TimePoint lastTime = std::get<C>(timelines_).GetLastTime();
@@ -384,6 +385,8 @@ class Filter{
   }
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   void SetMinWaitTimes(double min_wait_time) {}
+
+  TimePoint GetCurrentFilterTime() const { return time_; }
 
  protected:
   bool is_initialized_;
