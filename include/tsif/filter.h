@@ -54,6 +54,8 @@ class Filter{
     return TimePoint::min();
   }
 
+  const TimePoint& GetCurrentFilterTime() const { return time_;} 
+
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMinMaxTime(){
     return std::min(std::get<C>(timelines_).GetLastTime(), GetMinMaxTime<C+1>());
@@ -141,7 +143,7 @@ class Filter{
   virtual void PreProcess(const TimePoint& t){};
   virtual void PostProcess(const TimePoint& t){};
 
-  void Update(){
+  bool Update(){
     // Initialize if possible
     if(!is_initialized_){
       Init(GetMaxMinTime());
@@ -167,6 +169,8 @@ class Filter{
       TSIF_LOG("Timelines after split and merging:");
       PrintTimelines(time_, 20, 0.001);
 
+      if (times.empty()) return false;
+
       // Carry out updates
       for (const auto& t : times){
         MakeUpdateStep(t);
@@ -175,6 +179,8 @@ class Filter{
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
     }
+
+    return true;
   }
 
   void MakeUpdateStep(TimePoint t){
