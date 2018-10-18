@@ -361,6 +361,8 @@ class Filter{
 
   MatX GetInformation() const { return I_; }
 
+  const TimePoint& GetCurrentStateTime() { return time_; }
+
   void Uninitialize() { is_initialized_ = false; }
 
   bool IsInitialized() const { return is_initialized_; }
