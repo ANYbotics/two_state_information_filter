@@ -21,7 +21,7 @@ class AttitudeFindif: public AttitudeFindifBase<OUT_ATT,STA_ATT,STA_ROR>{
   typedef typename Base::Output Output;
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
-  AttitudeFindif(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true): Base(isSplitable,isMergeable,isMandatory){}
+  AttitudeFindif(): Base(true,true,true){}
   int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
     out.template Get<OUT_ATT>() = Boxminus(cur.template Get<STA_ATT>(),
                                            pre.template Get<STA_ATT>()*Exp(dt_*pre.template Get<STA_ROR>()));

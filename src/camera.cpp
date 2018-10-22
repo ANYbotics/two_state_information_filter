@@ -3,10 +3,14 @@
 namespace tsif{
 
   Camera::Camera(){
-    k1_ = 0.0; k2_ = 0.0; k3_ = 0.0; k4_ = 0.0; k5_ = 0.0; k6_ = 0.0;
-    p1_ = 0.0; p2_ = 0.0; s1_ = 0.0; s2_ = 0.0; s3_ = 0.0; s4_ = 0.0;
+    k1_ = -0.28340811; k2_ = 0.07395907; k3_ = 0.0; k4_ = 0.0; k5_ = 0.0; k6_ = 0.0;
+    p1_ = 0.00019359; p2_ = 1.76187114e-05; s1_ = 0.0; s2_ = 0.0; s3_ = 0.0; s4_ = 0.0;
     K_.setIdentity();
-    type_ = NONE;
+    K_(0,0) = 458.654;
+    K_(0,2) = 367.215;
+    K_(1,1) = 457.296;
+    K_(1,2) = 248.375;
+    type_ = RADTAN;
   };
 
   void Camera::DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out) const{
