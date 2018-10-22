@@ -12,6 +12,7 @@
 #include "tsif/residuals/position_findif.h"
 #include "tsif/residuals/random_walk.h"
 #include "tsif/utils/common.h"
+#include "tsif/utils/camera.h"
 #include "tsif/filter.h"
 
 namespace tsif{
