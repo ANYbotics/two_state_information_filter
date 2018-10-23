@@ -495,7 +495,7 @@ class VioFilter: public VioFilterBase<N> {
     }
     return count;
   }
- private:
+ protected:
   Camera cam_;
   cv::Mat drawImg_;
   std::array<LandmarkData,N> l_;
