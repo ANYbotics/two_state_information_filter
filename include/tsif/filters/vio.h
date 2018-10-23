@@ -136,8 +136,8 @@ class VioFilter: public VioFilterBase<N> {
     doDraw_ = FD_->Get<int>("do_draw");
     singleMatchOnly_ = FD_->Get<int>("single_match_only");
   }
-  virtual ~VioFilter(){}
-  virtual void Init(TimePoint t){
+  ~VioFilter() override {}
+  void Init(TimePoint t) override {
     if(GetMinMaxTime() != TimePoint::min()){
       TSIF_LOG("Initializing state at t = " << Print(t));
       startTime_ = t;
@@ -158,7 +158,7 @@ class VioFilter: public VioFilterBase<N> {
       is_initialized_ = true;
     }
   }
-  virtual void ComputeLinearizationPoint(const TimePoint& t){
+  virtual void ComputeLinearizationPoint(const TimePoint& t) override {
     curLinState_ = state_;
     double dt = toSec(t-time_);
     std::shared_ptr<const MeasAcc> acc = std::get<2>(timelines_).Get(t);
@@ -182,7 +182,7 @@ class VioFilter: public VioFilterBase<N> {
       curLinState_.template Get<7>()[i] = invDis + dt*beaVec.dot(vel)*invDis*invDis;
     }
   }
-  virtual void PreProcess(){
+  virtual void PreProcess(const TimePoint& t) override {
     const auto& m = std::get<6>(residuals_).meas_;
     for(int i=0;i<N;i++){
       std::get<6>(residuals_).active_[i] = false;
@@ -356,7 +356,7 @@ class VioFilter: public VioFilterBase<N> {
     cv::line(img,cv::Point2f(p1_2d(0),p1_2d(1)),cv::Point2f(p2_2d(0),p2_2d(1)),color, 1);
     cv::line(img,cv::Point2f(p1_2d(0),p1_2d(1)),cv::Point2f(p3_2d(0),p3_2d(1)),color, 1);
   }
-  virtual void PostProcess(){
+  virtual void PostProcess(const TimePoint& t) override {
     Timer timer;
     const auto& m = std::get<6>(residuals_).meas_;
     // Remove if not tracked for more then prune_count frames
@@ -469,11 +469,11 @@ class VioFilter: public VioFilterBase<N> {
       }
     }
 
-    if(doDraw_){
+    /*if(doDraw_){
       cv::namedWindow("VIO", cv::WINDOW_AUTOSIZE);
       cv::imshow("VIO", drawImg_);
       cv::waitKey(2);
-    }
+    }*/
     TSIF_LOG("Drawing: " << 1000*timer.GetIncr());
     TSIF_LOG("=== Postprocess: " << 1000*timer.GetFull());
   };
