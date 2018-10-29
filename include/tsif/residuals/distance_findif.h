@@ -31,10 +31,16 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
     const Mat3 C_VI = pre.template Get<STA_VEA>().toRotationMatrix();
     const Vec3 vel = C_VI*(pre.template Get<STA_VEL>() + pre.template Get<STA_ROR>().cross(pre.template Get<STA_VEP>()));
     for(int i=0;i<N;i++){
-      const UnitVector& bea = pre.template Get<STA_BEA>()[i];
-      const Vec3 beaVec = bea.GetVec();
-      const double& invDis = pre.template Get<STA_DIS>()[i];
-      out.template Get<OUT_DIS>()[i] = invDis + dt_*beaVec.dot(vel)*invDis*invDis - cur.template Get<STA_DIS>()[i];
+      if ((pre.template Get<STA_DIS>().at(i) > horizon_distance_parameter_)
+          && (cur.template Get<STA_DIS>().at(i) > horizon_distance_parameter_)){
+        const UnitVector& bea = pre.template Get<STA_BEA>()[i];
+        const Vec3 beaVec = bea.GetVec();
+        const double& invDis = pre.template Get<STA_DIS>()[i];
+        out.template Get<OUT_DIS>()[i] = invDis + dt_*beaVec.dot(vel)*invDis*invDis - cur.template Get<STA_DIS>()[i];
+      }
+      else{
+        out.template Get<OUT_DIS>()[i] = pre.template Get<STA_DIS>()[i] - cur.template Get<STA_DIS>()[i];
+      }
     }
     return 0;
   }
@@ -43,16 +49,22 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
     const Mat3 C_VI = pre.template Get<STA_VEA>().toRotationMatrix();
     const Vec3 vel = C_VI*(pre.template Get<STA_VEL>() + pre.template Get<STA_ROR>().cross(pre.template Get<STA_VEP>()));
     for(int i=0;i<N;i++){
-      const UnitVector& bea = pre.template Get<STA_BEA>()[i];
-      const Vec3 beaVec = bea.GetVec();
-      const double& invDis = pre.template Get<STA_DIS>()[i];
-      const Mat<1,3> J_vel = dt_*beaVec.transpose()*invDis*invDis;
-      J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEL)) = J_vel*C_VI;
-      J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_ROR)) = -J_vel*C_VI*SSM(pre.template Get<STA_VEP>());
-      J.block<1,1>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_DIS)+1*i) = Mat1::Identity()+dt_*2*beaVec.transpose()*vel*invDis;
-      J.block<1,2>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_BEA)+2*i) = dt_*vel.transpose()*invDis*invDis*bea.GetM();
-      if (vep_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEP)) = J_vel*C_VI*SSM(pre.template Get<STA_ROR>());
-      if (vea_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEA)) = - J_vel*SSM(vel);
+      if ((pre.template Get<STA_DIS>().at(i) > horizon_distance_parameter_)
+          && (cur.template Get<STA_DIS>().at(i) > horizon_distance_parameter_)){
+        const UnitVector& bea = pre.template Get<STA_BEA>()[i];
+        const Vec3 beaVec = bea.GetVec();
+        const double& invDis = pre.template Get<STA_DIS>()[i];
+        const Mat<1,3> J_vel = dt_*beaVec.transpose()*invDis*invDis;
+        J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEL)) = J_vel*C_VI;
+        J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_ROR)) = -J_vel*C_VI*SSM(pre.template Get<STA_VEP>());
+        J.block<1,1>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_DIS)+1*i) = Mat1::Identity()+dt_*2*beaVec.transpose()*vel*invDis;
+        J.block<1,2>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_BEA)+2*i) = dt_*vel.transpose()*invDis*invDis*bea.GetM();
+        if (vep_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEP)) = J_vel*C_VI*SSM(pre.template Get<STA_ROR>());
+        if (vea_not_fixed_) J.block<1,3>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_VEA)) = - J_vel*SSM(vel);
+      }
+      else{
+        J.block<1,1>(Output::Start(OUT_DIS)+1*i,pre.Start(STA_DIS)+1*i) = Mat1::Identity();
+      }
     }
     return 0;
   }
@@ -69,6 +81,7 @@ class DistanceFindif: public DistanceFindifBase<OUT_DIS,STA_BEA,STA_DIS,STA_VEL,
  protected:
   const bool vep_not_fixed_;
   const bool vea_not_fixed_;
+  double horizon_distance_parameter_{0.};
 };
 
 } // namespace tsif
