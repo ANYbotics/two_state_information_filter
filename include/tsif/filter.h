@@ -386,7 +386,7 @@ class Filter{
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   void SetMinWaitTimes(double min_wait_time) {}
 
-  TimePoint GetCurrentFilterTime() const { return time_; }
+  const TimePoint& GetCurrentFilterTime() const { return time_; }
 
  protected:
   bool is_initialized_;
