@@ -140,6 +140,40 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
  protected:
   bool measForwardSupport_{true}; //backwards support if false
 
+  //additional helpers to scale a jacobian block either coefficient-wise or by a scalar
+  template<int OUT,int STA, typename std::enable_if<(STA>=0 & OUT>=0)>::type* = nullptr>
+  void ScaleJacCur(MatRefX J, const typename Current::CRef cur, MatCRef<Output::template GetElementDim<OUT>(),Current::template GetElementDim<STA>()> Jmult){
+    J.block<Output::template GetElementDim<OUT>(),Current::template GetElementDim<STA>()>(
+        Output::Start(OUT),cur.Start(STA)).array() *= Jmult.array();
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
+  void ScaleJacCur(MatRefX J, const typename Current::CRef cur, MatCRefX Jmult){
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA>=0 & OUT>=0)>::type* = nullptr>
+  void ScaleJacPre(MatRefX J, const typename Previous::CRef pre, MatCRef<Output::template GetElementDim<OUT>(),Previous::template GetElementDim<STA>()> Jmult){
+    J.block<Output::template GetElementDim<OUT>(),Previous::template GetElementDim<STA>()>(
+        Output::Start(OUT),pre.Start(STA)).array() *= Jmult.aray();
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
+  void ScaleJacPre(MatRefX J, const typename Previous::CRef pre, MatCRefX Jmult){
+  }
+
+  template<int OUT,int STA, typename std::enable_if<(STA>=0 & OUT>=0)>::type* = nullptr>
+  void ScaleJacCur(MatRefX J, const typename Current::CRef cur, const double& Dmult){
+    J.block<Output::template GetElementDim<OUT>(),Current::template GetElementDim<STA>()>(
+        Output::Start(OUT),cur.Start(STA)) *= Dmult;
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
+  void ScaleJacCur(MatRefX J, const typename Current::CRef cur, const double& Dmult){
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA>=0 & OUT>=0)>::type* = nullptr>
+  void ScaleJacPre(MatRefX J, const typename Previous::CRef pre,  const double& Dmult){
+    J.block<Output::template GetElementDim<OUT>(),Previous::template GetElementDim<STA>()>(
+        Output::Start(OUT),pre.Start(STA)) *= Dmult;
+  }
+  template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
+  void ScaleJacPre(MatRefX J, const typename Previous::CRef pre, const double& Dmult){
+  }
 };
 
 } // namespace tsif
