@@ -74,6 +74,7 @@ class UnitVector{
     Boxplus(dif,out);
     J = out.GetN().transpose()*GetN();
   }
+  bool velocity_feedback_active_{true};
 };
 
 } // namespace tsif
