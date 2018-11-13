@@ -54,8 +54,6 @@ class Filter{
     return TimePoint::min();
   }
 
-  const TimePoint& GetCurrentFilterTime() const { return time_;} 
-
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMinMaxTime(){
     return std::min(std::get<C>(timelines_).GetLastTime(), GetMinMaxTime<C+1>());
