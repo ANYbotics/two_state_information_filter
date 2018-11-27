@@ -24,28 +24,25 @@ class Filter{
     State pre_state_;
     TimePoint pre_time_;
     bool is_set_{false};
-    unsigned int set_count_{0u};
-    unsigned int set_count_threshold_{1u};
+    Duration size_{fromSec(.0025)};
   };
   void UpdateWindow(){
-    if (++window_.set_count_>window_.set_count_threshold_){
+    if ((time_-window_.pre_time_)>window_.size_){
       window_.pre_I_ = I_;
       window_.pre_state_ = state_;
       window_.pre_time_ = time_;
       window_.is_set_ = true;
-      window_.set_count_ = 0u;
     }
   }
-  void ShiftWindow() {
+  void ApplyWindow(){
     if (window_.is_set_){
       I_ = window_.pre_I_;
       state_ = window_.pre_state_;
       time_ = window_.pre_time_;
     }
   }
-  void ResetWindow() {
+  void ResetWindow(){
     window_.is_set_ = false;
-    window_.set_count_ = 0u;
   }
   const TimePoint& GetMinWindowTime() { 
     if(window_.is_set_){
@@ -60,7 +57,6 @@ class Filter{
             I_(State::Dim(),State::Dim()){
     is_initialized_ = false;
     include_max_ = false;
-    max_state_window_size_ = 1;
     max_iter_ = 1;
     th_iter_ = 0.1;
     iter_ = 0;
@@ -190,7 +186,7 @@ class Filter{
 
     if(is_initialized_){
       
-      ShiftWindow();
+      ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
       PrintTimelines(time_, 20, 0.001);
@@ -430,7 +426,6 @@ class Filter{
 
  protected:
   Window window_;
-  int max_state_window_size_;
   bool is_initialized_;
   bool include_max_;
   TimePoint startTime_;
