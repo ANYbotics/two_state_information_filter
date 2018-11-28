@@ -16,11 +16,13 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
   std::shared_ptr<const Meas> meas_;
   double dt_;
   double w_;
+  const bool isDelayed_;
   const bool isSplitable_;  // Can measurements be split into two
   const bool isMergeable_;  // Can two measurements be merged into one (should be same as isSplitable)
   const bool isMandatory_;   // Is this measurement required at every timestep (should then typically be splitable)
   bool isActive_;           // Temporary, is a measurement currently available
-  Residual(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true):
+  Residual(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true,bool isDelayed = false):
+      isDelayed_(isDelayed),
       isSplitable_(isSplitable),
       isMergeable_(isMergeable),
       isMandatory_(isMandatory),

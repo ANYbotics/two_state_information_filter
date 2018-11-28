@@ -54,6 +54,7 @@ class Filter{
   }
 
   Filter(): timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1),fromSec(0.0))...),
+            has_delayed_residual_(HasDelayedResidual()),
             I_(State::Dim(),State::Dim()){
     is_initialized_ = false;
     include_max_ = false;
@@ -63,6 +64,24 @@ class Filter{
     weightedDelta_ = 0;
   }
   virtual ~Filter(){}
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  bool HasDelayedMeas() const{
+    return (std::get<C>(residuals_).isDelayed_ && std::get<C>(timelines_).HasMeas(time_)) || HasDelayedMeas<C+1>();
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  bool HasDelayedMeas() const{
+    return false;
+  }
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  bool HasDelayedResidual() const{
+    return (std::get<C>(residuals_).isDelayed_) || HasDelayedMeas<C+1>();
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  bool HasDelayedResidual() const{
+    return false;
+  }
 
   template<int N>
   void AddMeas(TimePoint t,std::shared_ptr<const typename std::tuple_element<N,ResidualTuple>::type::Measurement> m){
@@ -186,7 +205,9 @@ class Filter{
 
     if(is_initialized_){
       
-      ApplyWindow();
+      if(has_delayed_residual_ && HasDelayedMeas()){
+        ApplyWindow();
+      }
 
       TSIF_LOG("Timelines before processing:");
       PrintTimelines(time_, 20, 0.001);
@@ -212,8 +233,13 @@ class Filter{
         MakeUpdateStep(t);
       }
 
-      UpdateWindow();
-      Clean(GetMinWindowTime());
+      if(has_delayed_residual_){
+        UpdateWindow();
+        Clean(GetMinWindowTime());
+      }
+      else{
+        Clean(time_);
+      }
 
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
@@ -426,6 +452,7 @@ class Filter{
 
  protected:
   Window window_;
+  const bool has_delayed_residual_;
   bool is_initialized_;
   bool include_max_;
   TimePoint startTime_;

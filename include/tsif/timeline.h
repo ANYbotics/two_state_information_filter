@@ -24,7 +24,7 @@ class Timeline{
     TSIF_LOGWIF(mm_.count(t) > 0, "Entry already exists for measurement!");
     mm_[t] = m;
   }
-  bool HasMeas(TimePoint t){
+  bool HasMeas(TimePoint t) const{
     return mm_.count(t) > 0;
   }
   std::shared_ptr<const Measurement> Get(TimePoint t){
@@ -168,7 +168,7 @@ class Timeline<MeasEmpty>{
   void Add(TimePoint t,std::shared_ptr<const MeasEmpty> m){
     TSIF_LOGW("Unnecessary addition of empty measurement!");
   }
-  bool HasMeas(TimePoint t){
+  bool HasMeas(TimePoint t) const{
     return true;
   }
   std::shared_ptr<const MeasEmpty> Get(TimePoint t){
