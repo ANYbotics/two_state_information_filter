@@ -76,7 +76,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   bool HasDelayedResidual() const{
-    return (std::get<C>(residuals_).isDelayed_) || HasDelayedMeas<C+1>();
+    return (std::get<C>(residuals_).isDelayed_) || HasDelayedResidual<C+1>();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedResidual() const{
