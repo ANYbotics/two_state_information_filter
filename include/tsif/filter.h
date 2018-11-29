@@ -92,7 +92,8 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMaxUpdateTime(TimePoint current){
-    return std::min(std::get<C>(timelines_).GetMaximalUpdateTime(current), GetMaxUpdateTime<C+1>(current));
+    return std::min(std::get<C>(residuals_).isOptional_ ? TimePoint::max() : std::get<C>(timelines_).GetMaximalUpdateTime(current),
+                    GetMaxUpdateTime<C+1>(current));
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   TimePoint GetMaxUpdateTime(TimePoint current){
@@ -101,7 +102,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetCurrentTime(){
-    TimePoint lastTime = std::get<C>(timelines_).GetLastTime();
+    TimePoint lastTime = std::get<C>(residuals_).isOptional_ ? TimePoint::max() : std::get<C>(timelines_).GetLastTime();
     return lastTime == TimePoint::max() ? GetCurrentTime<C+1>() : std::max(std::get<C>(timelines_).GetLastTime(), GetCurrentTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
@@ -111,7 +112,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMinMaxTime(){
-    return std::min(std::get<C>(timelines_).GetLastTime(), GetMinMaxTime<C+1>());
+    return std::min(std::get<C>(residuals_).isOptional_ ? TimePoint::max() : std::get<C>(timelines_).GetLastTime(), GetMinMaxTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   TimePoint GetMinMaxTime(){
@@ -120,7 +121,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMaxMinTime(){
-    return std::max(std::get<C>(timelines_).GetFirstTime(), GetMaxMinTime<C+1>());
+    return std::max(std::get<C>(residuals_).isOptional_ ? TimePoint::min() : std::get<C>(timelines_).GetFirstTime(), GetMaxMinTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   TimePoint GetMaxMinTime(){
