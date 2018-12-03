@@ -4,6 +4,7 @@
 #include "tsif/utils/common.h"
 #include "tsif/residual.h"
 #include "tsif/timeline.h"
+#include "tsif/window.h"
 
 namespace tsif{
 
@@ -16,16 +17,20 @@ class Filter{
   typedef std::tuple<Timeline<typename Residuals::Measurement>...> TimelineTuple;
   alignas(16) ResidualTuple residuals_;
   alignas(16) TimelineTuple timelines_;
+  Window<State> window_;
 
-  struct Window {
-    Window() = default;
-    ~Window() = default;
-    MatX pre_I_;
-    State pre_state_;
-    TimePoint pre_time_;
-    bool is_set_{false};
-    Duration size_{fromSec(.0025)};
-  };
+  Filter(): timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1),fromSec(0.0))...),
+            has_delayed_residual_(HasDelayedResidual()),
+            I_(State::Dim(),State::Dim()){
+    is_initialized_ = false;
+    include_max_ = false;
+    max_iter_ = 1;
+    th_iter_ = 0.1;
+    iter_ = 0;
+    weightedDelta_ = 0;
+  }
+  virtual ~Filter(){}
+
   void UpdateWindow(){
     if ((time_-window_.pre_time_)>window_.size_){
       window_.pre_I_ = I_;
@@ -53,21 +58,9 @@ class Filter{
     }
   }
 
-  Filter(): timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1),fromSec(0.0))...),
-            has_delayed_residual_(HasDelayedResidual()),
-            I_(State::Dim(),State::Dim()){
-    is_initialized_ = false;
-    include_max_ = false;
-    max_iter_ = 1;
-    th_iter_ = 0.1;
-    iter_ = 0;
-    weightedDelta_ = 0;
-  }
-  virtual ~Filter(){}
-
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
-    return (std::get<C>(residuals_).isDelayed_ && std::get<C>(timelines_).HasMeas(time_)) || HasDelayedMeas<C+1>();
+    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(window_.pre_time_, time_)>0)) || HasDelayedMeas<C+1>();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
@@ -452,7 +445,6 @@ class Filter{
   void SetMinWaitTimes(double min_wait_time) {}
 
  protected:
-  Window window_;
   const bool has_delayed_residual_;
   bool is_initialized_;
   bool include_max_;

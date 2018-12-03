@@ -38,7 +38,17 @@ class Timeline{
   void Clear(){
     mm_.clear();
   }
-  int CountSmallerOrEqual(TimePoint t){
+  int CountInRange(TimePoint lower_t, TimePoint upper_t) const {
+    int count = 0;
+    auto it = mm_.upper_bound(upper_t);
+    auto it_horizon = mm_.lower_bound(lower_t);
+    while(it != it_horizon){
+      count++;
+      it--;
+    }
+    return count;
+  }
+  int CountSmallerOrEqual(TimePoint t) const {
     int count = 0;
     auto it = mm_.upper_bound(t);
     while(it != mm_.begin()){
@@ -177,6 +187,12 @@ class Timeline<MeasEmpty>{
   void Clean(TimePoint t){
   }
   void Clear(){
+  }
+  int CountInRange(TimePoint lower_t, TimePoint upper_t) const {
+    return 0;
+  }
+  int CountSmallerOrEqual(TimePoint t) const {
+    return 0;
   }
   TimePoint GetLastTime() const{
     return TimePoint::max();
