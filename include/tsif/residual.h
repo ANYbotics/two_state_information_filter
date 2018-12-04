@@ -20,7 +20,7 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
   const bool isSplitable_;  // Can measurements be split into two
   const bool isMergeable_;  // Can two measurements be merged into one (should be same as isSplitable)
   const bool isMandatory_;  // Is this measurement required at every timestep (should then typically be splitable)
-  const bool isOptional_;  // should the residual be consider optional when constructing the update
+  const bool isOptional_;   // should the residual be consider optional when constructing the update
   bool isActive_;           // Temporary, is a measurement currently available
   Residual(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true,bool isDelayed = false, bool isOptional = false):
       isDelayed_(isDelayed),
