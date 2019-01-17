@@ -18,10 +18,12 @@ struct is_tsif
 template <typename Derived>
 using is_tsif_t = typename is_tsif<Derived>::type;
 
-template <typename ConcreteDefinition>
+template <typename ConcreteDefinition_>
 struct FilterDefinition {
 
   FilterDefinition() = delete;
+
+  using ConcreteDefinition = ConcreteDefinition_;
 
   static_assert(!std::is_void<typename ConcreteDefinition::ParamEnum>::value,
                 "[FilterDefinition] Filter definition must define ParamEnum.");
