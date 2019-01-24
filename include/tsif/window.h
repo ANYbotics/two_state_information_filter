@@ -8,40 +8,80 @@ namespace tsif{
 template<typename State>
 class Window {
  public:
-  Window() = default;
+
+  Window(double size=0.0025):
+    size_(fromSec(size)){}
   ~Window() = default;
 
   using StateInformationPair = std::pair<State, MatX>;
   using Moment = std::pair<TimePoint, StateInformationPair>;
   using StateHistory = std::map<TimePoint, StateInformationPair>;
 
-  //TODO make private
-  bool is_set_{false};
-  Duration size_{fromSec(.0025)};
 
-  StateHistory stateHistory_;
-
-  void Add(TimePoint t, State state, MatX information){
-  	stateHistory_.insert(Moment(t,StateInformationPair(state,information)));
+  void AddMoment(TimePoint t, State state, MatX information){
+    if((t-GetEndTime())>fromSec(0.)){
+      is_set_ = true;
+      stateHistory_.insert(Moment(t,StateInformationPair(state,information)));
+      //std::cout << "Added moment (" << stateHistory_.size() << ")" << std::endl;
+    }
   }
 
-  TimePoint GetStartTime(){
-  	TimePoint t;
+  TimePoint GetStartTime() const {
+    auto t = TimePoint();
   	if(!stateHistory_.empty()){
   		t = stateHistory_.begin()->first;
   	}
   	return t;
   }
 
-  void Clean(const TimePoint& t){
-  	auto it = stateHistory_.begin();
-  	while(it != stateHistory_.end() && (t - it->first)>Duration(0.)){
-  	}
+  TimePoint GetEndTime() const {
+    auto t = TimePoint();
+    if(!stateHistory_.empty()){
+      t = stateHistory_.rbegin()->first;
+    }
+    return t;
   }
 
-  MatX pre_I_;
-  State pre_state_;
-  TimePoint pre_time_;
+  void Clean(){
+    while(GetSize() > size_) { RemoveFirstMoment(); }
+    //std::cout << "Cleaned history (" << stateHistory_.size() << ")" << std::endl;
+  }
+
+  bool GetStartMoment(TimePoint& t, State& state, MatRefX information) const {
+    if(is_set_){
+      const auto startMoment = stateHistory_.begin();
+      t = startMoment->first;
+      state = (startMoment->second).first;
+      information = (startMoment->second).second;
+      return true;
+    }
+    return false;
+  }
+
+  void Reset(){
+    is_set_=false;
+    stateHistory_.clear();
+  }
+
+  void SetSize(double size){
+    size_ = fromSec(size);
+  }
+
+ protected:
+  Duration GetSize(){
+    Duration size = fromSec(0.);
+    if(stateHistory_.size()>1) size=(GetEndTime() - GetStartTime());
+    return size;
+  }
+  void RemoveFirstMoment(){
+    if(!stateHistory_.empty()){
+      stateHistory_.erase(stateHistory_.begin());
+    }
+  }
+
+  StateHistory stateHistory_;
+  bool is_set_{false};
+  Duration size_;
 
 };
 

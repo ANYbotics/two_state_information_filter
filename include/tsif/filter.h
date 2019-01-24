@@ -17,7 +17,6 @@ class Filter{
   typedef std::tuple<Timeline<typename Residuals::Measurement>...> TimelineTuple;
   alignas(16) ResidualTuple residuals_;
   alignas(16) TimelineTuple timelines_;
-  Window<State> window_;
 
   Filter(): timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1),fromSec(0.0))...),
             has_delayed_residual_(HasDelayedResidual()),
@@ -31,42 +30,9 @@ class Filter{
   }
   virtual ~Filter(){}
 
-  void UpdateWindow(){
-
-    ///////////////////////
-
-    window_.Add(time_, state_, I_);
-
-    ///////////////////////
-    if ((time_-window_.pre_time_)>window_.size_){
-      window_.pre_I_ = I_;
-      window_.pre_state_ = state_;
-      window_.pre_time_ = time_;
-      window_.is_set_ = true;
-    }
-  }
-  void ApplyWindow(){
-    if (window_.is_set_){
-      I_ = window_.pre_I_;
-      state_ = window_.pre_state_;
-      time_ = window_.pre_time_;
-    }
-  }
-  void ResetWindow(){
-    window_.is_set_ = false;
-  }
-  const TimePoint& GetMinWindowTime() { 
-    if(window_.is_set_){
-      return window_.pre_time_;
-    }
-    else{
-      return startTime_;
-    }
-  }
-
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
-    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(window_.pre_time_, time_)>0)) || HasDelayedMeas<C+1>();
+    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(std::max(window_.GetStartTime(), startTime_), time_)>0)) || HasDelayedMeas<C+1>();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
@@ -187,7 +153,7 @@ class Filter{
       time_ = t;
       state_.SetIdentity();
       I_.setIdentity();
-      ResetWindow();
+      window_.Reset();
       is_initialized_ = true;
     }
   }
@@ -205,8 +171,9 @@ class Filter{
 
     if(is_initialized_){
       
+      //if there is a delayed measurement in the window, revert the state back to the window start
       if(has_delayed_residual_ && HasDelayedMeas()){
-        ApplyWindow();
+        window_.GetStartMoment(time_, state_, I_);
       }
 
       TSIF_LOG("Timelines before processing:");
@@ -233,9 +200,10 @@ class Filter{
         MakeUpdateStep(t);
       }
 
-      if(has_delayed_residual_){        
-        UpdateWindow();
-        Clean(GetMinWindowTime());
+      if(has_delayed_residual_){
+        window_.AddMoment(time_, state_, I_);
+        window_.Clean();            
+        Clean(std::max(window_.GetStartTime(), startTime_));
       }
       else{
         Clean(time_);
@@ -451,6 +419,7 @@ class Filter{
   void SetMinWaitTimes(double min_wait_time) {}
 
  protected:
+  Window<State> window_{0.0025};
   const bool has_delayed_residual_;
   bool is_initialized_;
   bool include_max_;
