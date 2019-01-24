@@ -32,11 +32,20 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
-    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(std::max(window_.GetStartTime(), startTime_), time_)>0)) || HasDelayedMeas<C+1>();
+    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(std::max(window_.GetFirstTime(), startTime_), time_)>0)) || HasDelayedMeas<C+1>();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
     return false;
+  }
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  TimePoint GetMaxDelayedMeasTime(){
+    return std::max(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(), GetMaxDelayedMeasTime<C+1>());
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  TimePoint GetMaxDelayedMeasTime(){
+    return TimePoint::min();
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
@@ -173,7 +182,7 @@ class Filter{
       
       //if there is a delayed measurement in the window, revert the state back to the window start
       if(has_delayed_residual_ && HasDelayedMeas()){
-        window_.GetStartMoment(time_, state_, I_);
+        window_.GetFirstMoment(time_, state_, I_);
       }
 
       TSIF_LOG("Timelines before processing:");
@@ -202,8 +211,8 @@ class Filter{
 
       if(has_delayed_residual_){
         window_.AddMoment(time_, state_, I_);
-        window_.Clean();            
-        Clean(std::max(window_.GetStartTime(), startTime_));
+        window_.Clean(GetMaxDelayedMeasTime());
+        Clean(std::max(window_.GetFirstTime(), startTime_));
       }
       else{
         Clean(time_);
