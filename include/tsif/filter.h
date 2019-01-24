@@ -32,6 +32,12 @@ class Filter{
   virtual ~Filter(){}
 
   void UpdateWindow(){
+
+    ///////////////////////
+
+    window_.Add(time_, state_, I_);
+
+    ///////////////////////
     if ((time_-window_.pre_time_)>window_.size_){
       window_.pre_I_ = I_;
       window_.pre_state_ = state_;
@@ -227,7 +233,7 @@ class Filter{
         MakeUpdateStep(t);
       }
 
-      if(has_delayed_residual_){
+      if(has_delayed_residual_){        
         UpdateWindow();
         Clean(GetMinWindowTime());
       }
