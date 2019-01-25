@@ -41,7 +41,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMaxDelayedMeasTime(){
-    return std::max(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(), GetMaxDelayedMeasTime<C+1>());
+    return std::max((std::get<C>(residuals_).isDelayed_ && !std::get<C>(residuals_).isCloneUpdater_) ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(), GetMaxDelayedMeasTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   TimePoint GetMaxDelayedMeasTime(){
@@ -172,6 +172,22 @@ class Filter{
   virtual void PreProcess(){};
   virtual void PostProcess(){};
 
+  bool ApplyWindow(){
+    if(has_delayed_residual_ && HasDelayedMeas()){
+      window_.GetFirstMoment(time_, state_, I_);
+      return true;
+    }
+    return false;
+  }
+  bool UpdateWindow(){
+    if(has_delayed_residual_){
+      window_.AddMoment(time_, state_, I_);
+      window_.Clean(GetMaxDelayedMeasTime());
+      return true;
+    }
+    return false;
+  }
+
   void Update(){
     // Initialize if possible
     if(!is_initialized_){
@@ -179,11 +195,7 @@ class Filter{
     }
 
     if(is_initialized_){
-      
-      //if there is a delayed measurement in the window, revert the state back to the window start
-      if(has_delayed_residual_ && HasDelayedMeas()){
-        window_.GetFirstMoment(time_, state_, I_);
-      }
+      ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
       PrintTimelines(time_, 20, 0.001);
@@ -209,14 +221,7 @@ class Filter{
         MakeUpdateStep(t);
       }
 
-      if(has_delayed_residual_){
-        window_.AddMoment(time_, state_, I_);
-        window_.Clean(GetMaxDelayedMeasTime());
-        Clean(std::max(window_.GetFirstTime(), startTime_));
-      }
-      else{
-        Clean(time_);
-      }
+      UpdateWindow() ? Clean(std::max(window_.GetFirstTime(), startTime_)) : Clean(time_);
 
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
