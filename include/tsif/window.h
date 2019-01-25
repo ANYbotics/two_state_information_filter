@@ -5,13 +5,20 @@
 
 namespace tsif{
 
+//configuration for the window
+struct WindowConfig {
+  WindowConfig() = default;
+  ~WindowConfig() = default;
+  double size_{0.0025};
+  unsigned int diagnostics_level_{0u};
+  bool crop_with_measurements_{false};
+};
+
 template<typename State>
 class Window {
  public:
 
-  Window(double size=0.0025, unsigned int diagnostics_level=0u):
-      size_(fromSec(size)),
-      diagnostics_level_(diagnostics_level) {}
+  Window() = default;
   ~Window() = default;
 
   using StateInformationPair = std::pair<State, MatX>;
@@ -20,14 +27,14 @@ class Window {
 
   // add a moment to the state history
   void AddMoment(TimePoint t, State state, MatX information){
-    is_set_ = true;
-    stateHistory_.insert(Moment(t,StateInformationPair(state,information)));
-    //std::cout << "Added moment (" << stateHistory_.size() << ")" << std::endl;
+    if(stateHistory_.insert(Moment(t,StateInformationPair(state,information))).second){
+      is_set_ = true;
+      if(diagnostics_level_>0u) std::cout << "[Window] Added moment("<< stateHistory_.size() <<") at " << Print(t) << std::endl;
+    }
   }
 
   //get the first timepoint in the state history
   TimePoint GetFirstTime() const {
-    //std::cout << "GetFirstTime (" << stateHistory_.size() << ")" << std::endl;
     auto t = TimePoint::min();
   	if(!stateHistory_.empty()){
   		t = stateHistory_.begin()->first;
@@ -37,7 +44,6 @@ class Window {
 
   //get the last timepoint in the state history
   TimePoint GetLastTime() const {
-    //std::cout << "GetLastTime (" << stateHistory_.size() << ")" << std::endl;
     auto t = TimePoint::max();
     if(!stateHistory_.empty()){
       t = stateHistory_.rbegin()->first;
@@ -47,17 +53,16 @@ class Window {
 
   //reduce the size of the window to the allowed max size and remove all moments before the given time
   void Clean(TimePoint t = TimePoint::min()){
-    while(!stateHistory_.empty() && (Oversized() || DoesCut(t))) {
-      //std::cout << "Oversized()= "<< Oversized() << " DoesCut(t)=" << << DoesCut(t) " (" << stateHistory_.size() << ")" << std::endl;
+    const auto doesCut = crop_with_measurements_ && DoesCut(t);
+    while(!stateHistory_.empty() && (Oversized() || doesCut)) {
       RemoveFirstMoment();
+      if(diagnostics_level_>1u) std::cout << "[Window] Cleaning state history("<< stateHistory_.size() << ", " << Oversized() << ", " << DoesCut(t) <<") at " << Print(t) << std::endl;
     }
-    //std::cout << "Cleaned at " <<" (" << stateHistory_.size() << ")" << std::endl;
     is_set_ = !stateHistory_.empty();
   }
 
   //access the first moment in the state history
   bool GetFirstMoment(TimePoint& t, State& state, MatRefX information) const {
-    //std::cout << "GetFirstMoment (" << stateHistory_.size() << ")" << std::endl;
     if(is_set_){
       const auto startMoment = stateHistory_.begin();
       t = startMoment->first;
@@ -70,24 +75,21 @@ class Window {
 
   //reset the window to an uninitialized state
   void Reset(){
-    //std::cout << "Reset (" << stateHistory_.size() << ")" << std::endl;
     is_set_ = false;
     stateHistory_.clear();
   }
 
-  //setters for config params
-  void SetSize(double size){
-    size_ = fromSec(size);
-  }
-  void SetDiagnosticsLevel(unsigned int diagnostics_level){
-    diagnostics_level_ = diagnostics_level;
+  //configure the window
+  void Configure(const WindowConfig& config){
+    size_ = fromSec(config.size_);
+    diagnostics_level_ = config.diagnostics_level_;
+    crop_with_measurements_ = config.crop_with_measurements_;
   }
 
  protected:
 
   //check if the window is oversized
   bool Oversized(){
-    //std::cout << "GetSize (" << stateHistory_.size() << ")" << std::endl;
     if(stateHistory_.size()>1) {
       auto size=(GetLastTime() - GetFirstTime());
       return size>size_;
@@ -97,11 +99,9 @@ class Window {
 
   //check if the given time is within the window
   bool DoesCut(TimePoint t){
-    //std::cout << "GetSize (" << stateHistory_.size() << ")" << std::endl;
     auto it = stateHistory_.lower_bound(t);
     if(it!=stateHistory_.end() && it!=stateHistory_.begin()){
       auto size = it->first - stateHistory_.begin()->first;
-      //std::cout << "Cut size = " << toSec(size) << ")" << std::endl;
       return size>Duration::min();
     }
     return false;
@@ -109,7 +109,6 @@ class Window {
 
   //remove the first moment from the state history
   void RemoveFirstMoment(){
-    //std::cout << "RemoveFirstMoment (" << stateHistory_.size() << ")" << std::endl;
     if(!stateHistory_.empty()){
       stateHistory_.erase(stateHistory_.begin());
     }
@@ -122,8 +121,9 @@ class Window {
   //maximum allowed size of the window
   Duration size_;
   //config for how much diagnostic info to print
-  unsigned int diagnostics_level_;
-
+  unsigned int diagnostics_level_{0u};
+  //use measurements to delete states from the window
+  bool crop_with_measurements_{false};
 };
 
 } // namespace tsif

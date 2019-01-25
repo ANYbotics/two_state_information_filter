@@ -433,7 +433,7 @@ class Filter{
   void SetMinWaitTimes(double min_wait_time) {}
 
  protected:
-  Window<State> window_{0.0025};
+  Window<State> window_;
   const bool has_delayed_residual_;
   bool is_initialized_;
   bool include_max_;
