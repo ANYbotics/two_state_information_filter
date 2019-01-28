@@ -45,7 +45,7 @@ struct ElementTraits{
 
 template<typename T, int I>
 class Element{
- private:
+ public:
 	alignas(16) T x_;
   typedef ElementTraits<T> Traits;
  public:
@@ -421,6 +421,60 @@ class ElementTraits<std::array<T, N>>{
     for (int i = 0; i < N; i++){
       Traits::Scale(w,x.at(i));
     }
+  }
+};
+
+/*! \brief Pair Trait.
+ *         Element trait for a pair consisting of a principal element T plus some accompanying information E
+ */
+template<typename T, typename E>
+class ElementTraits<std::pair<T, E>>{
+ public:
+  typedef ElementTraits<T> Traits;
+  using pair = std::pair<T, E>;
+  static constexpr bool kIsVectorSpace = Traits::kIsVectorSpace;
+  static constexpr int kDim = Traits::kDim;
+  static std::string Print(const pair& x){
+    std::ostringstream out;
+    out << Traits::Print(x.first) << "\t";
+    return out.str();
+  }
+  static pair Identity(){
+    pair x(Traits::Identity(), E());
+    return x;
+  }
+  static void SetRandom(pair& x){
+    Traits::SetRandom(x.first);
+  }
+  static void Boxplus(const pair& in, const VecCRef<kDim>& vec, pair& out){
+    Traits::Boxplus(in.first, vec, out.first);
+    out.second = in.second;
+  }
+  static void Boxminus(const pair& in, const pair& ref, VecRef<kDim> vec){
+    Traits::Boxminus(in.first, ref.first, vec);
+  }
+  static Mat<kDim> BoxplusJacInp(const pair& in, const VecCRef<kDim>& vec){
+    Mat<kDim> J = Traits::BoxplusJacInp(in.first, vec);
+    return J;
+  }
+  static Mat<kDim> BoxplusJacVec(const pair& in, const VecCRef<kDim>& vec){
+    Mat<kDim> J = Traits::BoxplusJacVec(in.first, vec);
+    return J;
+  }
+  static Mat<kDim> BoxminusJacInp(const pair& in, const pair& ref){
+    Mat<kDim> J = Traits::BoxminusJacInp(in.first, ref.first);
+    return J;
+  }
+  static Mat<kDim> BoxminusJacRef(const pair& in, const pair& ref){
+    Mat<kDim> J =  Traits::BoxminusJacRef(in.first, ref.first);
+    return J;
+  }
+  static Vec<kDim> GetVec(const pair& x){
+    Vec<kDim> vec = x.first.GetVec();
+    return vec;
+  }
+  static void Scale(double w, pair& x){
+    Traits::Scale(w,x.first);
   }
 };
 

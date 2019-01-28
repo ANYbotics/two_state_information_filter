@@ -195,6 +195,9 @@ class Filter{
     }
 
     if(is_initialized_){
+
+      std::cout << "[DEBUG] Filter update" << std::endl;
+      
       ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
@@ -233,8 +236,8 @@ class Filter{
     ComputeLinearizationPoint(t);
 
     // Check available measurements and prepare residuals
-    int innDim = PreProcessResidual(t);
     PreProcess();
+    int innDim = PreProcessResidual(t);
 
     // Temporaries
     y_.resize(innDim);
@@ -287,9 +290,22 @@ class Filter{
     TSIF_LOG("Information matrix:\n" << I_);
 
     // Post Processing
+    PostProcessResidual(t);
     PostProcess();
     time_ = t;
   }
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  void PostProcessResidual(TimePoint t){
+    std::get<C>(residuals_).isActive_ = std::get<C>(timelines_).HasMeas(t);
+    assert(std::get<C>(residuals_).isActive_ || !std::get<C>(residuals_).isMandatory_);
+    if(std::get<C>(residuals_).isActive_){
+      std::get<C>(residuals_).PostProcess(state_, I_);
+    }
+    PostProcessResidual<C+1>(t);
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  void PostProcessResidual(TimePoint t){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   int PreProcessResidual(TimePoint t){
@@ -298,6 +314,7 @@ class Filter{
     if(std::get<C>(residuals_).isActive_){
       std::get<C>(residuals_).dt_ = toSec(t-time_);
       std::get<C>(residuals_).meas_ = std::get<C>(timelines_).Get(t);
+      std::get<C>(residuals_).PreProcess(state_, I_);
     }
     return PreProcessResidual<C+1>(t) + std::tuple_element<C,ResidualTuple>::type::Output::Dim();
   }

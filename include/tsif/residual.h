@@ -40,6 +40,12 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
     meas_ = meas;
   }
   virtual ~Residual(){};
+  virtual int PreProcess(typename Cur::Ref cur, MatRefX I){
+    return 1;
+  }
+  virtual int PostProcess(typename Cur::Ref cur, MatRefX I){
+    return 1;
+  }
   virtual int EvalRes(typename Out::Ref out, const typename Pre::CRef pre, const typename Cur::CRef cur){
     return 1;
   }
