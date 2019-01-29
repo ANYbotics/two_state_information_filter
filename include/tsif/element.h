@@ -45,7 +45,7 @@ struct ElementTraits{
 
 template<typename T, int I>
 class Element{
- public:
+ private:
 	alignas(16) T x_;
   typedef ElementTraits<T> Traits;
  public:

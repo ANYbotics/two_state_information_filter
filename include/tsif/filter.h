@@ -195,9 +195,6 @@ class Filter{
     }
 
     if(is_initialized_){
-
-      std::cout << "[DEBUG] Filter update" << std::endl;
-      
       ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
@@ -232,12 +229,14 @@ class Filter{
   }
 
   void MakeUpdateStep(TimePoint t){
-    // Compute linearisation point
-    ComputeLinearizationPoint(t);
+
+    PreProcess();
 
     // Check available measurements and prepare residuals
-    PreProcess();
     int innDim = PreProcessResidual(t);
+
+    // Compute linearisation point
+    ComputeLinearizationPoint(t);
 
     // Temporaries
     y_.resize(innDim);
@@ -286,13 +285,14 @@ class Filter{
 
     state_ = curLinState_;
     I_ = newInf;
+    time_ = t;
+
     TSIF_LOG("State after Update:\n" << state_.Print());
     TSIF_LOG("Information matrix:\n" << I_);
 
     // Post Processing
     PostProcessResidual(t);
     PostProcess();
-    time_ = t;
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
