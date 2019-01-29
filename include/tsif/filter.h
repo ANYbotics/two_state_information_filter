@@ -40,11 +40,13 @@ class Filter{
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  TimePoint GetMaxDelayedMeasTime(){
-    return std::max((std::get<C>(residuals_).isDelayed_ && !std::get<C>(residuals_).isCloneUpdater_) ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(), GetMaxDelayedMeasTime<C+1>());
+  TimePoint GetMaxDelayedMeasTime() const {
+    return std::max((std::get<C>(residuals_).isDelayed_ && !std::get<C>(residuals_).isCloneUpdater_) ?
+                        std::get<C>(timelines_).GetLastTime() : TimePoint::min(),
+                    GetMaxDelayedMeasTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  TimePoint GetMaxDelayedMeasTime(){
+  TimePoint GetMaxDelayedMeasTime() const {
     return TimePoint::min();
   }
 
@@ -172,20 +174,24 @@ class Filter{
   virtual void PreProcess(const TimePoint& t){};
   virtual void PostProcess(const TimePoint& t){};
 
-  bool ApplyWindow(){
+  void ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){
       window_.GetFirstMoment(time_, state_, I_);
-      return true;
+      window_.Clean();
     }
-    return false;
   }
-  bool UpdateWindow(){
+  void UpdateWindow(){
     if(has_delayed_residual_){
       window_.AddMoment(time_, state_, I_);
-      window_.Clean(GetMaxDelayedMeasTime());
-      return true;
     }
-    return false;
+  }
+  void CleanWindow(){
+    auto clean_time = time_;
+    if(has_delayed_residual_){
+      window_.Shrink(GetMaxDelayedMeasTime());
+      clean_time = std::max(window_.GetFirstTime(), startTime_);
+    }
+    Clean(clean_time);
   }
 
   void Update(){
@@ -219,9 +225,10 @@ class Filter{
       // Carry out updates
       for (const auto& t : times){
         MakeUpdateStep(t);
+        UpdateWindow();
       }
 
-      UpdateWindow() ? Clean(std::max(window_.GetFirstTime(), startTime_)) : Clean(time_);
+      CleanWindow();
 
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);

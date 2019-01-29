@@ -29,7 +29,7 @@ class Window {
   void AddMoment(TimePoint t, State state, MatX information){
     if(stateHistory_.insert(Moment(t,StateInformationPair(state,information))).second){
       is_set_ = true;
-      if(diagnostics_level_>0u) std::cout << "[Window] Added moment("<< stateHistory_.size() <<") at " << Print(t) << std::endl;
+      if(diagnostics_level_>0u) std::cout << "[Window] Added moment ("<< stateHistory_.size() <<") at " << Print(t) << std::endl;
     }
   }
 
@@ -51,12 +51,19 @@ class Window {
     return t;
   }
 
-  //reduce the size of the window to the allowed max size and remove all moments before the given time
-  void Clean(TimePoint t = TimePoint::min()){
-    const auto doesCut = crop_with_measurements_ && DoesCut(t);
-    while(!stateHistory_.empty() && (Oversized() || doesCut)) {
+  //remove all except the first moment
+  void Clean(){
+    while(stateHistory_.size()>1){
+      if(diagnostics_level_>1u) std::cout << "[Window] Cleaning state history (" << stateHistory_.size() << ")" << std::endl;
       RemoveFirstMoment();
-      if(diagnostics_level_>1u) std::cout << "[Window] Cleaning state history("<< stateHistory_.size() << ", " << Oversized() << ", " << DoesCut(t) <<") at " << Print(t) << std::endl;
+    }
+  }
+
+  //reduce the size of the window to the allowed max size and remove all moments before the given time
+  void Shrink(TimePoint t = TimePoint::min()){
+    while(!stateHistory_.empty() && (Oversized() || (crop_with_measurements_ && DoesCut(t)) )) {
+      if(diagnostics_level_>1u) std::cout << "[Window] Shrinking state history ("<< stateHistory_.size() << ", " << Oversized() << ", " << DoesCut(t) <<") at " << Print(t) << std::endl;
+      RemoveFirstMoment();
     }
     is_set_ = !stateHistory_.empty();
   }
