@@ -169,8 +169,8 @@ class Filter{
   virtual void ComputeLinearizationPoint(const TimePoint& t){
     curLinState_ = state_;
   }
-  virtual void PreProcess(){};
-  virtual void PostProcess(){};
+  virtual void PreProcess(const TimePoint& t){};
+  virtual void PostProcess(const TimePoint& t){};
 
   bool ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){
@@ -230,7 +230,7 @@ class Filter{
 
   void MakeUpdateStep(TimePoint t){
 
-    PreProcess();
+    PreProcess(t);
 
     // Check available measurements and prepare residuals
     int innDim = PreProcessResidual(t);
@@ -292,7 +292,7 @@ class Filter{
 
     // Post Processing
     PostProcessResidual(t);
-    PostProcess();
+    PostProcess(t);
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
