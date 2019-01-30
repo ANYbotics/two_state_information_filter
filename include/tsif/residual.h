@@ -16,20 +16,18 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
   std::shared_ptr<const Meas> meas_;
   double dt_;
   double w_;
-  const bool isCloneUpdater_; // Is this residual a clone updater
-  const bool isDelayed_;      // Does the measurement associated with this residual arrive with a delay
   const bool isSplitable_;    // Can measurements be split into two
   const bool isMergeable_;    // Can two measurements be merged into one (should be same as isSplitable)
   const bool isMandatory_;    // Is this measurement required at every timestep (should then typically be splitable)
+  const bool isDelayed_;      // Does the measurement associated with this residual arrive with a delay
   const bool isOptional_;     // Should the residual be consider optional when constructing the update
   bool isActive_;             // Temporary, is a measurement currently available
   Residual(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true,
-           bool isDelayed = false, bool isOptional = false, bool isCloneUpdater = false):
-      isCloneUpdater_(isCloneUpdater),
-      isDelayed_(isDelayed),
+           bool isDelayed = false, bool isOptional = false):
       isSplitable_(isSplitable),
       isMergeable_(isMergeable),
       isMandatory_(isMandatory),
+      isDelayed_(isDelayed),
       isOptional_(isOptional),
       meas_(nullptr){
     dt_ = 0.1;

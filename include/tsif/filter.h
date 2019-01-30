@@ -41,8 +41,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMaxDelayedMeasTime() const {
-    return std::max((std::get<C>(residuals_).isDelayed_ && !std::get<C>(residuals_).isCloneUpdater_) ?
-                        std::get<C>(timelines_).GetLastTime() : TimePoint::min(),
+    return std::max(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(),
                     GetMaxDelayedMeasTime<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>

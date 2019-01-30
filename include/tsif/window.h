@@ -108,8 +108,7 @@ class Window {
   bool DoesCut(TimePoint t){
     auto it = stateHistory_.lower_bound(t);
     if(it!=stateHistory_.end() && it!=stateHistory_.begin()){
-      auto size = it->first - stateHistory_.begin()->first;
-      return size>Duration::min();
+      return it->first > stateHistory_.begin()->first;;
     }
     return false;
   }
