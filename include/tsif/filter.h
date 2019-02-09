@@ -187,7 +187,9 @@ class Filter{
   void CleanWindow(){ // TODO refactor to move the CleanTimelines call outside
     auto clean_time = time_;
     if(has_delayed_residual_){
-      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut(GetFirstDelayedMeasTime())
+      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut()
+      // TODO does GetFirstDelayedMeasTime() make more sense for cloning?
+      // TODO in fact, cutting and whether or not to cut off the measurement should be filter options
       clean_time = std::max(window_.GetFirstTime(), startTime_);
     }
     Clean(clean_time);

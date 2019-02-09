@@ -69,10 +69,10 @@ class Window {
   }
 
   //TODO cut the tail end off the state history
-  void Cut(const TimePoint& t) {
-    // check if t is earlier that the first moment if so, do nothing and return
-    // get upper bound of t as it
-    // erase(begin(), it)
+  void Cut(const TimePoint& t) { // TOTO add another bool argument for whether or not to cut off the measurement
+    // check if t is earlier or equal to the first moment. if so, do nothing and return
+    // get lower bound of t as it
+    // erase(begin(), it), i.e. remove everything before t but not t in order to keep the associated meas
   }
 
   //access the first moment in the state history
