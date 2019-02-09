@@ -26,15 +26,15 @@ class Window {
   using StateHistory = std::map<TimePoint, StateInformationPair>;
 
   // add a moment to the state history
-  void AddMoment(TimePoint t, State state, MatX information){
+  void AddMoment(TimePoint t, State state, MatX information){ // make const ref method
     if(stateHistory_.insert(Moment(t,StateInformationPair(state,information))).second){
-      is_set_ = true;
+      is_set_ = true; // TODO reove is_set_, use stateHistory_.empty() instead
       if(diagnostics_level_>0u) std::cout << "[Window] Added moment ("<< stateHistory_.size() <<") at " << Print(t) << std::endl;
     }
   }
 
   //get the first timepoint in the state history
-  TimePoint GetFirstTime() const {
+  TimePoint GetFirstTime() const { // TODO use bool GetFirstTime(TimePoint& t) const instead to remove ambiguity when uninitialized
     auto t = TimePoint::min();
   	if(!stateHistory_.empty()){
   		t = stateHistory_.begin()->first;
@@ -43,7 +43,7 @@ class Window {
   }
 
   //get the last timepoint in the state history
-  TimePoint GetLastTime() const {
+  TimePoint GetLastTime() const { // TODO use bool GetLastTime(TimePoint& t) const instead to remove ambiguity when uninitialized
     auto t = TimePoint::max();
     if(!stateHistory_.empty()){
       t = stateHistory_.rbegin()->first;
@@ -60,12 +60,19 @@ class Window {
   }
 
   //reduce the size of the window to the allowed max size and remove all moments before the given time
-  void Shrink(TimePoint t = TimePoint::min()){
+  void Shrink(TimePoint t = TimePoint::min()){ // TODO make const ref method // TODO move the cutting functionality to a void Cut() method
     while(!stateHistory_.empty() && (Oversized() || (crop_with_measurements_ && DoesCut(t)) )) {
       if(diagnostics_level_>1u) std::cout << "[Window] Shrinking state history ("<< stateHistory_.size() << ", " << Oversized() << ", " << DoesCut(t) <<") at " << Print(t) << std::endl;
-      RemoveFirstMoment();
+      RemoveFirstMoment(); // TODO use a one-go removal scheme to speed things up
     }
     is_set_ = !stateHistory_.empty();
+  }
+
+  //TODO cut the tail end off the state history
+  void Cut(const TimePoint& t) {
+    // check if t is earlier that the first moment if so, do nothing and return
+    // get upper bound of t as it
+    // erase(begin(), it)
   }
 
   //access the first moment in the state history
@@ -105,7 +112,7 @@ class Window {
   }
 
   //check if the given time is within the window
-  bool DoesCut(TimePoint t){
+  bool DoesCut(TimePoint t){ // TODO remove
     auto it = stateHistory_.lower_bound(t);
     if(it!=stateHistory_.end() && it!=stateHistory_.begin()){
       return it->first > stateHistory_.begin()->first;;
@@ -129,7 +136,7 @@ class Window {
   //config for how much diagnostic info to print
   unsigned int diagnostics_level_{0u};
   //use measurements to delete states from the window
-  bool crop_with_measurements_{false};
+  bool crop_with_measurements_{false}; // TODO remove and solve with reasonable default param to shrink
 };
 
 } // namespace tsif

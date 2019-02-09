@@ -31,7 +31,7 @@ class Filter{
   virtual ~Filter(){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  bool HasDelayedMeas() const{
+  bool HasDelayedMeas() const{ // TODO just check if the timeline has a measurement at all
     return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(std::max(window_.GetFirstTime(), startTime_), time_)>0)) || HasDelayedMeas<C+1>();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
@@ -40,7 +40,7 @@ class Filter{
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  TimePoint GetMaxDelayedMeasTime() const {
+  TimePoint GetMaxDelayedMeasTime() const { // TODO remove and instead use a new GetFirstDelayedMeasTime()
     return std::max(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(),
                     GetMaxDelayedMeasTime<C+1>());
   }
@@ -141,8 +141,8 @@ class Filter{
   void SplitAndMerge(TimePoint time, const std::set<TimePoint>& times){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  void Clean(TimePoint time){
-    std::get<C>(timelines_).Clean(time);
+  void Clean(TimePoint time){ // TODO rename as CleanTimelines
+    std::get<C>(timelines_).Clean(time); // TODO if residual is delayed, CleanHard(time)
     Clean<C+1>(time);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
@@ -175,7 +175,7 @@ class Filter{
 
   void ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){
-      window_.GetFirstMoment(time_, state_, I_);
+      window_.GetFirstMoment(time_, state_, I_); // TODO swap the next two calls
       window_.Clean();
     }
   }
@@ -184,10 +184,10 @@ class Filter{
       window_.AddMoment(time_, state_, I_);
     }
   }
-  void CleanWindow(){
+  void CleanWindow(){ // TODO refactor to move the CleanTimelines call outside
     auto clean_time = time_;
     if(has_delayed_residual_){
-      window_.Shrink(GetMaxDelayedMeasTime());
+      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut(GetFirstDelayedMeasTime())
       clean_time = std::max(window_.GetFirstTime(), startTime_);
     }
     Clean(clean_time);
