@@ -174,7 +174,7 @@ class Filter{
   virtual void PostProcess(const TimePoint& t){};
 
   void ApplyWindow(){
-    if(has_delayed_residual_ && HasDelayedMeas()){
+    if(has_delayed_residual_ && HasDelayedMeas()){ // TODO also check if the first delayed meas time is AFTER the window horizon. if not, applying the window will f things up
       window_.GetFirstMoment(time_, state_, I_); // TODO swap the next two calls
       window_.Clean();
     }
@@ -187,7 +187,7 @@ class Filter{
   void CleanWindow(){ // TODO refactor to move the CleanTimelines call outside
     auto clean_time = time_;
     if(has_delayed_residual_){
-      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut()
+      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut() (also GetLast... would be better naming)
       // TODO does GetFirstDelayedMeasTime() make more sense for cloning?
       // TODO in fact, cutting and whether or not to cut off the measurement should be filter options
       clean_time = std::max(window_.GetFirstTime(), startTime_);

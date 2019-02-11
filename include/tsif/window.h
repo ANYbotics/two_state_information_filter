@@ -69,7 +69,7 @@ class Window {
   }
 
   //TODO cut the tail end off the state history
-  void Cut(const TimePoint& t) { // TOTO add another bool argument for whether or not to cut off the measurement
+  void Cut(const TimePoint& t) { // TODO add another bool argument for whether or not to cut off the measurement
     // check if t is earlier or equal to the first moment. if so, do nothing and return
     // get lower bound of t as it
     // erase(begin(), it), i.e. remove everything before t but not t in order to keep the associated meas
@@ -136,7 +136,7 @@ class Window {
   //config for how much diagnostic info to print
   unsigned int diagnostics_level_{0u};
   //use measurements to delete states from the window
-  bool crop_with_measurements_{false}; // TODO remove and solve with reasonable default param to shrink
+  bool crop_with_measurements_{false}; // TODO remove and solve in filter
 };
 
 } // namespace tsif
