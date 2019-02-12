@@ -31,22 +31,12 @@ class Filter{
   virtual ~Filter(){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  bool HasDelayedMeas() const{ // TODO just check if the timeline has a measurement at all
-    return (std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountInRange(std::max(window_.GetFirstTime(), startTime_), time_)>0)) || HasDelayedMeas<C+1>();
+  bool HasDelayedMeas() const{
+    return ((std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountSmallerOrEqual(time_)>0)) || HasDelayedMeas<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
     return false;
-  }
-
-  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  TimePoint GetMaxDelayedMeasTime() const { // TODO remove and instead use a new GetFirstDelayedMeasTime()
-    return std::max(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetLastTime() : TimePoint::min(),
-                    GetMaxDelayedMeasTime<C+1>());
-  }
-  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  TimePoint GetMaxDelayedMeasTime() const {
-    return TimePoint::min();
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
@@ -141,12 +131,12 @@ class Filter{
   void SplitAndMerge(TimePoint time, const std::set<TimePoint>& times){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  void Clean(TimePoint time){ // TODO rename as CleanTimelines
-    std::get<C>(timelines_).Clean(time); // TODO if residual is delayed, CleanHard(time)
-    Clean<C+1>(time);
+  void CleanTimelines(TimePoint time){
+    std::get<C>(residuals_).isOptional_ ? std::get<C>(timelines_).CleanHard(time) : std::get<C>(timelines_).Clean(time);
+    CleanTimelines<C+1>(time);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void Clean(TimePoint time){}
+  void CleanTimelines(TimePoint time){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Clear(){
@@ -170,13 +160,15 @@ class Filter{
   virtual void ComputeLinearizationPoint(const TimePoint& t){
     curLinState_ = state_;
   }
-  virtual void PreProcess(const TimePoint& t){};
-  virtual void PostProcess(const TimePoint& t){};
+  virtual void UpdateStepPreProcess(const TimePoint& t){};
+  virtual void UpdateStepPostProcess(const TimePoint& t){};
+  virtual void UpdatePreProcess(const TimePoint& t){};
+  virtual void UpdatePostProcess(const TimePoint& t){};
 
   void ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){ // TODO also check if the first delayed meas time is AFTER the window horizon. if not, applying the window will f things up
-      window_.GetFirstMoment(time_, state_, I_); // TODO swap the next two calls
       window_.Clean();
+      window_.GetFirstMoment(time_, state_, I_);
     }
   }
   void UpdateWindow(){
@@ -184,15 +176,14 @@ class Filter{
       window_.AddMoment(time_, state_, I_);
     }
   }
-  void CleanWindow(){ // TODO refactor to move the CleanTimelines call outside
-    auto clean_time = time_;
+  TimePoint CleanWindow(){
+    auto clean_time = startTime_;
     if(has_delayed_residual_){
-      window_.Shrink(GetMaxDelayedMeasTime()); // TODO remove and instead: Shrink(), then Cut() (also GetLast... would be better naming)
-      // TODO does GetFirstDelayedMeasTime() make more sense for cloning?
-      // TODO in fact, cutting and whether or not to cut off the measurement should be filter options
-      clean_time = std::max(window_.GetFirstTime(), startTime_);
+      window_.Shrink();
+      // TODO windoe_.Cut()
+      clean_time = std::max(window_.GetFirstTime(), clean_time);
     }
-    Clean(clean_time);
+    return clean_time;
   }
 
   void Update(){
@@ -211,6 +202,7 @@ class Filter{
       TSIF_LOG("Current time:\t" << Print(current));
       TimePoint maxUpdateTime = GetMaxUpdateTime(current);
       TSIF_LOG("Maximal update time:\t" << Print(maxUpdateTime));
+
       std::set<TimePoint> times;
       GetTimeList(times, maxUpdateTime, include_max_);
       std::ostringstream out;
@@ -223,13 +215,18 @@ class Filter{
       TSIF_LOG("Timelines after split and merging:");
       PrintTimelines(time_, 20, 0.001);
 
+      if(!times.empty()) UpdatePreProcess(maxUpdateTime);
+
       // Carry out updates
       for (const auto& t : times){
         MakeUpdateStep(t);
         UpdateWindow();
       }
 
-      CleanWindow();
+      if(!times.empty()) UpdatePostProcess(time_);
+
+      auto clean_time = CleanWindow();
+      CleanTimelines(clean_time);
 
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
@@ -238,7 +235,7 @@ class Filter{
 
   void MakeUpdateStep(TimePoint t){
 
-    PreProcess(t);
+    UpdateStepPreProcess(t);
 
     // Check available measurements and prepare residuals
     int innDim = PreProcessResidual(t);
@@ -300,7 +297,7 @@ class Filter{
 
     // Post Processing
     PostProcessResidual(t);
-    PostProcess(t);
+    UpdateStepPostProcess(t);
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>

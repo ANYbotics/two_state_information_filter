@@ -30,8 +30,13 @@ class Timeline{
   std::shared_ptr<const Measurement> Get(TimePoint t){
     return mm_.at(t);
   }
-  void Clean(TimePoint t){ // TODO add a CleanHard to be used with optional residuals!
+  void Clean(TimePoint t){
     while (CountSmallerOrEqual(t) > 1){ // Leave at least one measurement
+      RemoveFirst();
+    }
+  }
+  void CleanHard(TimePoint t){
+    while (CountSmallerOrEqual(t) > 0){ // Remove all
       RemoveFirst();
     }
   }
@@ -185,6 +190,8 @@ class Timeline<MeasEmpty>{
     return std::make_shared<MeasEmpty>();
   }
   void Clean(TimePoint t){
+  }
+  void CleanHard(TimePoint t){
   }
   void Clear(){
   }
