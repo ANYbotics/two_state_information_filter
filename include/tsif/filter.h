@@ -305,7 +305,7 @@ class Filter{
     std::get<C>(residuals_).isActive_ = std::get<C>(timelines_).HasMeas(t);
     assert(std::get<C>(residuals_).isActive_ || !std::get<C>(residuals_).isMandatory_);
     if(std::get<C>(residuals_).isActive_){
-      std::get<C>(residuals_).PostProcess(state_, I_);
+      std::get<C>(residuals_).PostProcess(t, state_, I_);
     }
     PostProcessResidual<C+1>(t);
   }
@@ -319,7 +319,7 @@ class Filter{
     if(std::get<C>(residuals_).isActive_){
       std::get<C>(residuals_).dt_ = toSec(t-time_);
       std::get<C>(residuals_).meas_ = std::get<C>(timelines_).Get(t);
-      std::get<C>(residuals_).PreProcess(state_, I_);
+      std::get<C>(residuals_).PreProcess(t, state_, I_);
     }
     return PreProcessResidual<C+1>(t) + std::tuple_element<C,ResidualTuple>::type::Output::Dim();
   }

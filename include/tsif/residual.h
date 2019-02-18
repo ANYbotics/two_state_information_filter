@@ -38,10 +38,10 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
     meas_ = meas;
   }
   virtual ~Residual(){};
-  virtual int PreProcess(typename Cur::Ref cur, MatRefX I){
+  virtual int PreProcess(const TimePoint& time, typename Cur::Ref cur, MatRefX I){
     return 1;
   }
-  virtual int PostProcess(typename Cur::Ref cur, MatRefX I){
+  virtual int PostProcess(const TimePoint& time, typename Cur::Ref cur, MatRefX I){
     return 1;
   }
   virtual int EvalRes(typename Out::Ref out, const typename Pre::CRef pre, const typename Cur::CRef cur){
