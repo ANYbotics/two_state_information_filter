@@ -27,6 +27,9 @@ class Timeline{
   bool HasMeas(TimePoint t) const{
     return mm_.count(t) > 0;
   }
+  bool HasMeasInRange(const TimePoint& lower_t, const TimePoint& upper_t) const {
+    return (CountInRange(lower_t, upper_t)>0);
+  }
   std::shared_ptr<const Measurement> Get(TimePoint t){
     return mm_.at(t);
   }
@@ -43,13 +46,15 @@ class Timeline{
   void Clear(){
     mm_.clear();
   }
-  int CountInRange(TimePoint lower_t, TimePoint upper_t) const {
+  int CountInRange(const TimePoint& lower_t, const TimePoint& upper_t) const {
     int count = 0;
-    auto it = mm_.upper_bound(upper_t);
-    auto it_horizon = mm_.lower_bound(lower_t);
-    while(it != it_horizon){
-      count++;
-      it--;
+    if(!mm_.empty() && (upper_t > lower_t)){
+      auto upper_it = mm_.upper_bound(upper_t);
+      auto lower_it = mm_.lower_bound(lower_t);
+      while(lower_it != upper_it){
+        count++;
+        lower_it++;
+      }
     }
     return count;
   }
@@ -184,6 +189,9 @@ class Timeline<MeasEmpty>{
     TSIF_LOGW("Unnecessary addition of empty measurement!");
   }
   bool HasMeas(TimePoint t) const{
+    return true;
+  }
+  bool HasMeasInRange(const TimePoint& lower_t, const TimePoint& upper_t) const {
     return true;
   }
   std::shared_ptr<const MeasEmpty> Get(TimePoint t){

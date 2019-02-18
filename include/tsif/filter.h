@@ -32,7 +32,7 @@ class Filter{
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
-    return ((std::get<C>(residuals_).isDelayed_ && (std::get<C>(timelines_).CountSmallerOrEqual(time_)>0)) || HasDelayedMeas<C+1>());
+    return ((std::get<C>(residuals_).isDelayed_ && std::get<C>(timelines_).HasMeasInRange(window_.GetFirstTime(),window_.GetLastTime())) || HasDelayedMeas<C+1>());
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
@@ -166,9 +166,10 @@ class Filter{
   virtual void UpdatePostProcess(const TimePoint& t){};
 
   void ApplyWindow(){
-    if(has_delayed_residual_ && HasDelayedMeas()){ // TODO also check if the first delayed meas time is AFTER the window horizon. if not, applying the window will f things up
-      window_.Clean();
-      window_.GetFirstMoment(time_, state_, I_);
+    if(has_delayed_residual_ && HasDelayedMeas()){
+      if(window_.GetFirstMoment(time_, state_, I_)){
+        window_.Clean();
+      }
     }
   }
   void UpdateWindow(){
@@ -177,13 +178,13 @@ class Filter{
     }
   }
   TimePoint CleanWindow(){
-    auto clean_time = startTime_;
     if(has_delayed_residual_){
       window_.Shrink();
-      // TODO windoe_.Cut()
-      clean_time = std::max(window_.GetFirstTime(), clean_time);
+      // TODO window_.Cut()
+      return std::max(window_.GetFirstTime(), startTime_);
+    } else {
+      return time_;
     }
-    return clean_time;
   }
 
   void Update(){
@@ -193,6 +194,7 @@ class Filter{
     }
 
     if(is_initialized_){
+      UpdatePreProcess(time_);
       ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
@@ -215,21 +217,19 @@ class Filter{
       TSIF_LOG("Timelines after split and merging:");
       PrintTimelines(time_, 20, 0.001);
 
-      if(!times.empty()) UpdatePreProcess(maxUpdateTime);
-
       // Carry out updates
       for (const auto& t : times){
         MakeUpdateStep(t);
         UpdateWindow();
       }
 
-      if(!times.empty()) UpdatePostProcess(time_);
-
       auto clean_time = CleanWindow();
       CleanTimelines(clean_time);
 
       TSIF_LOG("Timelines after cleaning:");
       PrintTimelines(time_, 20, 0.001);
+
+      UpdatePostProcess(time_);
     }
   }
 

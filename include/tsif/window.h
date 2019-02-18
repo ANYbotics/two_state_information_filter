@@ -24,10 +24,10 @@ class Window {
   using Moment = std::pair<TimePoint, StateInformationPair>;
   using StateHistory = std::map<TimePoint, StateInformationPair>;
 
-  // add a moment to the state history
+  //add a moment to the state history
   void AddMoment(const TimePoint& t, const typename State::CRef state, const MatCRefX information){
-    if(stateHistory_.insert(Moment(t,StateInformationPair(state,information))).second){
-      if(diagnostics_level_>0u) std::cout << "[Window] Added moment ("<< stateHistory_.size() <<") at " << Print(t) << std::endl;
+    if((t>GetLastTime()) && stateHistory_.insert(Moment(t,StateInformationPair(state,information))).second){
+      if(diagnostics_level_>0u) std::cout << "[Window] Added moment at " << Print(t) << " " << PrintWindowCharacteristics() << std::endl;
     }
   }
 
@@ -51,25 +51,27 @@ class Window {
 
   //remove all except the first moment
   void Clean(){
+    if(diagnostics_level_>0u) std::cout << "[Window] State history before cleaning: " << PrintWindowCharacteristics() << std::endl;
     while(stateHistory_.size()>1){
-      RemoveFirstMoment();
+      stateHistory_.erase(++stateHistory_.begin(), stateHistory_.end());
     }
-    if(diagnostics_level_>1u) std::cout << "[Window] Cleaned state history (" << stateHistory_.size() << ")" << std::endl;
+    if(diagnostics_level_>0u) std::cout << "[Window] Cleaned state history to " << PrintWindowCharacteristics() << std::endl;
   }
 
   //reduce the size of the window to the allowed max size and remove all moments before the given time
   void Shrink(){
-    while(Oversized()) {
-      RemoveFirstMoment();
+    bool oversized = Oversized();
+    if(oversized){
+      while(oversized) {
+        RemoveFirstMoment();
+        oversized = Oversized();
+      }
+      if(diagnostics_level_>0u) std::cout << "[Window] Shrunk state history " << PrintWindowCharacteristics() << std::endl;
     }
-    if(diagnostics_level_>1u) std::cout << "[Window] Shrunk state history ("<< stateHistory_.size() <<")" << std::endl;
   }
 
-  void Cut(const TimePoint& t) { // TODO add another bool argument for whether or not to cut off the measurement
+  void Cut(const TimePoint& t) {
     // TODO cut the tail end off the state history
-    // check if t is earlier or equal to the first moment. if so, do nothing and return
-    // get lower bound of t as it
-    // erase(begin(), it), i.e. remove everything before t but not t in order to keep the associated meas
   }
 
   //access the first moment in the state history
@@ -79,6 +81,7 @@ class Window {
       t = startMoment->first;
       state = (startMoment->second).first;
       information = (startMoment->second).second;
+      if(diagnostics_level_>1u) std::cout << "[Window] Accessing first moment at "<< Print(t) << std::endl;
       return true;
     }
     return false;
@@ -95,6 +98,21 @@ class Window {
     diagnostics_level_ = config.diagnostics_level_;
   }
 
+  //print characteristics of the window as [], [FIRSTTIME, SIZE, LASTTTIME] or [FIRSTTIME]
+  std::string PrintWindowCharacteristics() const {
+    std::ostringstream out;
+    out << "[";
+    if(!stateHistory_.empty()){
+      out << Print(GetFirstTime());
+      const auto size = stateHistory_.size();
+      if(size>1){
+        out << ", " << size << ", " << Print(GetLastTime());
+      }
+    }
+    out << "]";
+    return out.str();
+  }
+
  protected:
 
   //check if the window is oversized
@@ -107,17 +125,22 @@ class Window {
   }
 
   //remove the first moment from the state history
-  void RemoveFirstMoment(){
+  bool RemoveFirstMoment(){
     if(!stateHistory_.empty()){
       stateHistory_.erase(stateHistory_.begin());
+      return true;
     }
+    return false;
   }
 
   //collection of times, states, and information
   StateHistory stateHistory_;
   //maximum allowed size of the window
-  Duration size_;
+  Duration size_{fromSec(0.0025)};
   //config for how much diagnostic info to print
+  // 0: no diagnostics
+  // 1: stateHistory manipulation diagnostics
+  // 2: access diagnostics
   unsigned int diagnostics_level_{0u};
 };
 
