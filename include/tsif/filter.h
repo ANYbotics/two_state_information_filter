@@ -204,8 +204,6 @@ class Filter{
     }
 
     if(is_initialized_){
-      UpdatePreProcess(time_);
-      ApplyWindow();
 
       TSIF_LOG("Timelines before processing:");
       PrintTimelines(time_, 20, 0.001);
@@ -215,31 +213,36 @@ class Filter{
       TimePoint maxUpdateTime = GetMaxUpdateTime(current);
       TSIF_LOG("Maximal update time:\t" << Print(maxUpdateTime));
 
-      std::set<TimePoint> times;
-      GetTimeList(times, maxUpdateTime, include_max_);
-      std::ostringstream out;
-      out << "Update times:\t";
-      for (const auto& t : times){
-        out << Print(t) << " ";
+      if(maxUpdateTime>time_){
+        UpdatePreProcess(time_);
+        ApplyWindow();
+
+        std::set<TimePoint> times;
+        GetTimeList(times, maxUpdateTime, include_max_);
+        std::ostringstream out;
+        out << "Update times:\t";
+        for (const auto& t : times){
+          out << Print(t) << " ";
+        }
+        TSIF_LOG(out.str());
+        SplitAndMerge(time_,times);
+        TSIF_LOG("Timelines after split and merging:");
+        PrintTimelines(time_, 20, 0.001);
+
+        // Carry out updates
+        for (const auto& t : times){
+          MakeUpdateStep(t);
+          UpdateWindow();
+        }
+
+        auto clean_time = CleanWindow();
+        CleanTimelines(clean_time);
+
+        TSIF_LOG("Timelines after cleaning:");
+        PrintTimelines(time_, 20, 0.001);
+
+        UpdatePostProcess(time_);
       }
-      TSIF_LOG(out.str());
-      SplitAndMerge(time_,times);
-      TSIF_LOG("Timelines after split and merging:");
-      PrintTimelines(time_, 20, 0.001);
-
-      // Carry out updates
-      for (const auto& t : times){
-        MakeUpdateStep(t);
-        UpdateWindow();
-      }
-
-      auto clean_time = CleanWindow();
-      CleanTimelines(clean_time);
-
-      TSIF_LOG("Timelines after cleaning:");
-      PrintTimelines(time_, 20, 0.001);
-
-      UpdatePostProcess(time_);
     }
   }
 
