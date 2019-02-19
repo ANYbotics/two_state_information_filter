@@ -70,8 +70,14 @@ class Window {
     }
   }
 
-  void Cut(const TimePoint& t) {
-    // TODO cut the tail end off the state history
+  //cut the tail end off the state history
+  void CutEnd(const TimePoint& t) {
+    const auto it = stateHistory_.lower_bound(t);
+    if((stateHistory_.size()>2) && (it != stateHistory_.end())){
+      if(diagnostics_level_>0u) std::cout << "[Window] State history before cutting at " << Print(t) << ": " << PrintWindowCharacteristics() << std::endl;
+      stateHistory_.erase(stateHistory_.begin(), it);
+      if(diagnostics_level_>0u) std::cout << "[Window] Cut off state history end at " << Print(t) << ": " << PrintWindowCharacteristics() << std::endl;
+    }
   }
 
   //access the first moment in the state history

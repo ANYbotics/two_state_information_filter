@@ -56,6 +56,16 @@ class Filter{
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  TimePoint GetMinDelayedMeasTime(){
+    return std::min(std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetFirstTime() : TimePoint::max(),
+                    GetMinDelayedMeasTime<C+1>());
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  TimePoint GetMinDelayedMeasTime(){
+    return TimePoint::max();
+  }
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   TimePoint GetMaxUpdateTime(TimePoint current){
     return std::min(std::get<C>(residuals_).isOptional_ ? TimePoint::max() : std::get<C>(timelines_).GetMaximalUpdateTime(current),
                     GetMaxUpdateTime<C+1>(current));
@@ -167,6 +177,7 @@ class Filter{
 
   void ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){
+      //window_.CutEnd(GetMinDelayedMeasTime()); //TODO why doesn't this work
       if(window_.GetFirstMoment(time_, state_, I_)){
         window_.Clean();
       }
@@ -180,7 +191,6 @@ class Filter{
   TimePoint CleanWindow(){
     if(has_delayed_residual_){
       window_.Shrink();
-      // TODO window_.Cut()
       return std::max(window_.GetFirstTime(), startTime_);
     } else {
       return time_;
