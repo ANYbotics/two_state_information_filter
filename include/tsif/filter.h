@@ -177,7 +177,7 @@ class Filter{
 
   void ApplyWindow(){
     if(has_delayed_residual_ && HasDelayedMeas()){
-      //window_.CutEnd(GetMinDelayedMeasTime()); //TODO why doesn't this work
+      window_.CutEnd(GetMinDelayedMeasTime());
       if(window_.GetFirstMoment(time_, state_, I_)){
         window_.Clean();
       }

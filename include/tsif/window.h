@@ -72,8 +72,8 @@ class Window {
 
   //cut the tail end off the state history
   void CutEnd(const TimePoint& t) {
-    const auto it = stateHistory_.lower_bound(t);
-    if((stateHistory_.size()>2) && (it != stateHistory_.end())){
+    if(stateHistory_.size()>1){
+      const auto it = --stateHistory_.lower_bound(t);
       if(diagnostics_level_>0u) std::cout << "[Window] State history before cutting at " << Print(t) << ": " << PrintWindowCharacteristics() << std::endl;
       stateHistory_.erase(stateHistory_.begin(), it);
       if(diagnostics_level_>0u) std::cout << "[Window] Cut off state history end at " << Print(t) << ": " << PrintWindowCharacteristics() << std::endl;
