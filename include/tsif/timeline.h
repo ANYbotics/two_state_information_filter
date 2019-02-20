@@ -19,6 +19,14 @@ class Timeline{
   Timeline(Duration max_wait_time,Duration min_wait_time):
       max_wait_time_(max_wait_time),min_wait_time_(min_wait_time){
   }
+  std::size_t GetHash(std::size_t h = 3) const {
+    if(!mm_.empty()){
+      for (auto it = mm_.begin(); it!=mm_.end(); it++){
+        h = TimePointHash(it->first, h);
+      }
+    }
+    return h;
+  }
   void Add(TimePoint t,std::shared_ptr<const Measurement> m){
     TSIF_LOG("Add measurement at " << tsif::Print(t));
     TSIF_LOGWIF(mm_.count(t) > 0, "Entry already exists for measurement!");
@@ -184,6 +192,9 @@ class Timeline<MeasEmpty>{
  public:
   Timeline(Duration max_wait_time,Duration min_wait_time):
       max_wait_time_(max_wait_time),min_wait_time_(min_wait_time){
+  }
+  std::size_t GetHash(std::size_t h = 3) const {
+    return h;
   }
   void Add(TimePoint t,std::shared_ptr<const MeasEmpty> m){
     TSIF_LOGW("Unnecessary addition of empty measurement!");

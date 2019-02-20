@@ -21,6 +21,7 @@ class Filter{
   Filter(): timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1),fromSec(0.0))...),
             has_delayed_residual_(HasDelayedResidual()),
             I_(State::Dim(),State::Dim()){
+    dalyed_timelines_hash_ = GetDelayedTimelinesHash();
     is_initialized_ = false;
     include_max_ = false;
     max_iter_ = 1;
@@ -37,6 +38,15 @@ class Filter{
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
   bool HasDelayedMeas() const{
     return false;
+  }
+
+  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  std::size_t GetDelayedTimelinesHash() const{
+    return std::get<C>(residuals_).isDelayed_ ? std::get<C>(timelines_).GetHash(GetDelayedTimelinesHash<C+1>()): GetDelayedTimelinesHash<C+1>();
+  }
+  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  std::size_t GetDelayedTimelinesHash() const{
+    return 3;
   }
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
@@ -175,11 +185,21 @@ class Filter{
   virtual void UpdatePreProcess(const TimePoint& t){};
   virtual void UpdatePostProcess(const TimePoint& t){};
 
+  bool DelayedTimelinesUpdated() {
+    const auto new_hash = GetDelayedTimelinesHash();
+    if(new_hash != dalyed_timelines_hash_){
+      dalyed_timelines_hash_ = new_hash;
+      return true;
+    }
+    return false;
+  }
   void ApplyWindow(){
-    if(has_delayed_residual_ && HasDelayedMeas()){
-      window_.CutEnd(GetMinDelayedMeasTime());
-      if(window_.GetFirstMoment(time_, state_, I_)){
-        window_.Clean();
+    if(has_delayed_residual_){
+      if(HasDelayedMeas() && DelayedTimelinesUpdated()){
+        window_.CutEnd(GetMinDelayedMeasTime());
+        if(window_.GetFirstMoment(time_, state_, I_)){
+          window_.Clean();
+        }
       }
     }
   }
@@ -472,6 +492,7 @@ class Filter{
 
  protected:
   Window<State> window_;
+  std::size_t dalyed_timelines_hash_;
   const bool has_delayed_residual_;
   bool is_initialized_;
   bool include_max_;

@@ -31,6 +31,14 @@ inline TimePoint GetCenterTime(const TimePointSet& times){
   return (first_time + delta_t/2);
 }
 
+inline std::size_t TimePointHash(const TimePoint& t){
+  return std::hash<double>{}(((double)t.time_since_epoch().count()*Duration::period::num)/(Duration::period::den));
+}
+inline std::size_t TimePointHash(const TimePoint& t, std::size_t h){
+  std::size_t new_h = std::hash<double>{}(((double)t.time_since_epoch().count()*Duration::period::num)/(Duration::period::den));
+  return h ^ (new_h << 1);
+}
+
 class Timer{
  public:
   Timer(){
