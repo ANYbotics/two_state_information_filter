@@ -9,6 +9,8 @@ namespace tsif{
 typedef std::chrono::high_resolution_clock Clock;
 typedef Clock::time_point TimePoint;
 typedef Clock::duration Duration;
+typedef std::set<TimePoint> TimePointSet;
+
 inline Duration fromSec(const double sec){
   return std::chrono::duration_cast < Duration
       > (std::chrono::duration<double>(sec));
@@ -21,6 +23,12 @@ static std::string Print(TimePoint t){
   out.precision(15);
   out << ((double)t.time_since_epoch().count()*Duration::period::num)/(Duration::period::den);
   return out.str();
+}
+inline TimePoint GetCenterTime(const TimePointSet& times){
+  const auto first_time = *times.begin();
+  const auto last_time = *times.rbegin();
+  const auto delta_t = last_time - first_time;
+  return (first_time + delta_t/2);
 }
 
 class Timer{

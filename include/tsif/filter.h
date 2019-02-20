@@ -212,13 +212,16 @@ class Filter{
       TSIF_LOG("Current time:\t" << Print(current));
       TimePoint maxUpdateTime = GetMaxUpdateTime(current);
       TSIF_LOG("Maximal update time:\t" << Print(maxUpdateTime));
+      TimePointSet times;
+      GetTimeList(times, maxUpdateTime, include_max_);
 
-      if(maxUpdateTime>time_){
-        UpdatePreProcess(time_);
+      if(!times.empty()){
+        UpdatePreProcess(GetCenterTime(times));
         ApplyWindow();
 
-        std::set<TimePoint> times;
+        times.clear();
         GetTimeList(times, maxUpdateTime, include_max_);
+
         std::ostringstream out;
         out << "Update times:\t";
         for (const auto& t : times){
