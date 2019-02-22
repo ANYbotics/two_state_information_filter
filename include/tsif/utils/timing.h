@@ -24,12 +24,6 @@ static std::string Print(TimePoint t){
   out << ((double)t.time_since_epoch().count()*Duration::period::num)/(Duration::period::den);
   return out.str();
 }
-inline TimePoint GetCenterTime(const TimePointSet& times){
-  const auto first_time = *times.begin();
-  const auto last_time = *times.rbegin();
-  const auto delta_t = last_time - first_time;
-  return (first_time + delta_t/2);
-}
 
 inline std::size_t TimePointHash(const TimePoint& t){
   return std::hash<double>{}(((double)t.time_since_epoch().count()*Duration::period::num)/(Duration::period::den));

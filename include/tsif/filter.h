@@ -228,15 +228,15 @@ class Filter{
       TSIF_LOG("Timelines before processing:");
       PrintTimelines(time_, 20, 0.001);
       TSIF_LOG("State time:\t" << Print(time_));
-      TimePoint current = GetCurrentTime();
+      const TimePoint current = GetCurrentTime();
       TSIF_LOG("Current time:\t" << Print(current));
-      TimePoint maxUpdateTime = GetMaxUpdateTime(current);
+      const TimePoint maxUpdateTime = GetMaxUpdateTime(current);
       TSIF_LOG("Maximal update time:\t" << Print(maxUpdateTime));
       TimePointSet times;
       GetTimeList(times, maxUpdateTime, include_max_);
 
       if(!times.empty()){
-        UpdatePreProcess(GetCenterTime(times));
+        UpdatePreProcess(*times.rbegin());
         ApplyWindow();
 
         times.clear();
