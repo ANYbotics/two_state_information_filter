@@ -10,6 +10,10 @@
   <maintainer email="mwulf@anybotics.com">Maximilian Wulf</maintainer>
   <maintainer email="ynava@anybotics.com">Yoshua Nava</maintainer>
   <license>BSD</license>
+
   <buildtool_depend>catkin</buildtool_depend>
+  
   <depend>eigen</depend>
+
+  <test_depend>cmake_code_coverage</test_depend>
 </package>

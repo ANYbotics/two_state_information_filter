@@ -64,3 +64,36 @@ install(TARGETS
 install(DIRECTORY cfg
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+#############
+## Testing ##
+#############
+if (CATKIN_ENABLE_TESTING)
+  find_package(catkin REQUIRED)
+
+  include_directories(
+    include
+    SYSTEM
+      ${catkin_INCLUDE_DIRS}
+      ${EIGEN3_INCLUDE_DIRS}
+  )
+
+  catkin_add_gtest(test_${PROJECT_NAME}
+    test/test_main.cpp
+  )
+
+  target_link_libraries(test_${PROJECT_NAME}
+    ${PROJECT_NAME}
+  )
+endif()
+
+###################
+## Code_coverage ##
+###################
+find_package(cmake_code_coverage QUIET)
+if(cmake_code_coverage_FOUND)
+  add_gtest_coverage(
+    TEST_BUILD_TARGETS
+      test_${PROJECT_NAME}
+  )
+endif(cmake_code_coverage_FOUND)
