@@ -69,17 +69,15 @@ install(DIRECTORY cfg
 ## Testing ##
 #############
 if (CATKIN_ENABLE_TESTING)
-  find_package(catkin REQUIRED)
-
   catkin_add_gtest(test_${PROJECT_NAME}
     test/empty_test.cpp
   )
-  target_include_directories(test_${PROJECT_NAME}
-    PRIVATE
-      include
-    PUBLIC SYSTEM
-      ${catkin_INCLUDE_DIRS}
-      ${EIGEN3_INCLUDE_DIR}
+  target_include_directories(test_${PROJECT_NAME} PRIVATE
+    include
+  )
+  target_include_directories(test_${PROJECT_NAME} SYSTEM PUBLIC
+    ${catkin_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
   )
   target_link_libraries(test_${PROJECT_NAME}
     gtest_main
