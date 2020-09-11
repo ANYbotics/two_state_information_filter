@@ -73,9 +73,10 @@ class Model{
         std::cout << "\033[32m==== Test successful (" << r << ") ====\033[0m" << std::endl;
         return 0;
       }
-    } else {
-      std::cout << "\033[32m==== Test successful ( dimension 0 ) ====\033[0m" << std::endl;
     }
+
+    std::cout << "\033[32m==== Test successful ( dimension 0 ) ====\033[0m" << std::endl;
+    return 0;
   }
 };
 

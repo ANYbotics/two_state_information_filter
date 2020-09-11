@@ -177,6 +177,7 @@ class ElementVectorRef: public ElementVectorBase<ElementVectorRef<Elements...>,E
  private:
   typedef ElementVectorBase<ElementVectorRef<Elements...>,Elements...> Base;
   typedef std::tuple<Elements...> Tuple;
+
   std::tuple<Elements&...> elements_;
   const std::map<int,int> startMap_;
   const int Dim_;
@@ -189,7 +190,7 @@ class ElementVectorRef: public ElementVectorBase<ElementVectorRef<Elements...>,E
     startMap_{std::make_pair(Elements::kI,elementVector.Start(Elements::kI))...},
     Dim_(elementVector.Dim()){
   }
-  ~ElementVectorRef(){}
+  ~ElementVectorRef() = default;
 
   template<int I>
   typename std::tuple_element<Base::template GetC<I>(),Tuple>::type::Type& Get(){
@@ -220,6 +221,7 @@ class ElementVectorConstRef: public ElementVectorBase<ElementVectorConstRef<Elem
  private:
   typedef ElementVectorBase<ElementVectorConstRef<Elements...>,Elements...> Base;
   typedef std::tuple<Elements...> Tuple;
+
   std::tuple<const Elements&...> elements_;
   const std::map<int,int> startMap_;
   const int Dim_;
@@ -232,7 +234,7 @@ class ElementVectorConstRef: public ElementVectorBase<ElementVectorConstRef<Elem
     startMap_{std::make_pair(Elements::kI,elementVector.Start(Elements::kI))...},
     Dim_(elementVector.Dim()){
   }
-  ~ElementVectorConstRef(){}
+  ~ElementVectorConstRef() = default;
 
   template<int I>
   const typename std::tuple_element<Base::template GetC<I>(),Tuple>::type::Type& Get() const{
@@ -255,20 +257,23 @@ class ElementVector: public ElementVectorBase<ElementVector<Elements...>,Element
  private:
   typedef ElementVectorBase<ElementVector<Elements...>,Elements...> Base;
   typedef std::tuple<Elements...> Tuple;
+
   alignas(16) Tuple elements_;
 
  public:
   typedef ElementVectorRef<Elements...> Ref;
   typedef ElementVectorConstRef<Elements...> CRef;
-  static constexpr int kN = Base::kN;
-  ElementVector(){}
+
+  static constexpr const int kN = Base::kN;
+
+  ElementVector() = default;
   template<typename OtherDerived,typename... OtherElements>
   ElementVector(const ElementVectorBase<OtherDerived,OtherElements...>& elementVector):
     elements_(elementVector.template GetElement<Elements::kI>()...){}
   template<int C = 0, typename std::enable_if<(kN > C)>::type* = nullptr>
   ElementVector(const typename Elements::Type&... elements):
     elements_(elements...){}
-  ~ElementVector(){}
+  ~ElementVector() = default;
 
   template<int I>
   typename std::tuple_element<Base::template GetC<I>(),Tuple>::type::Type& Get(){
@@ -290,11 +295,11 @@ class ElementVector: public ElementVectorBase<ElementVector<Elements...>,Element
   static constexpr int Start(int I){
     return _Start<0>(I);
   }
-  template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
+  template<int C = 0, int kNInternal = kN, typename std::enable_if<(C < kNInternal)>::type* = nullptr>
   static constexpr int _Start(int I){
     return (std::tuple_element<C,Tuple>::type::kI == I) ? 0 : std::tuple_element<C,Tuple>::type::kDim + _Start<C+1>(I);
   }
-  template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
+  template<int C = 0, int kNInternal = kN, typename std::enable_if<(C >= kNInternal)>::type* = nullptr>
   static constexpr int _Start(int I){
     return -1;
   }
