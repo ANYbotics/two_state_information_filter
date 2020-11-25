@@ -142,7 +142,7 @@ class Filter{
   virtual void PostProcess(){};
 
   void Update(){
-    // Initialize if possible
+    // TODO(unassigned): It is not understandable why this function tries to initialize here.
     if(!is_initialized_){
       Init(GetMaxMinTime());
     }
