@@ -3,7 +3,7 @@
 
 using namespace tsif;
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
   Vec3 vec = NormalRandomNumberGenerator::Instance().GetVec<3>();
   Quat q(1,0,0,0);
   ElementTraits<Quat>::SetRandom(q);

@@ -4,6 +4,11 @@ project(two_state_information_filter)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options(-Wall -Wextra -Wpedantic)
+
+# Note: the warning about unused functions has been silenced because it has been found to give
+# wrong warnings about static functions in rotation.h and timing.h, which are used in the code.
+add_compile_options(-Wno-unused-function)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(TSIF_VERBOSE 0 CACHE STRING "Verbose flag")
 add_definitions(-DTSIF_VERBOSE=${TSIF_VERBOSE})

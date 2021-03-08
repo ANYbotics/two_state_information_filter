@@ -35,16 +35,16 @@ class AttitudeUpdate: public AttitudeUpdateBase<OUT_ATT,STA_qIB,STA_qIJ,STA_qBV>
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
   AttitudeUpdate(): Base(false,false,false){}
-  int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int EvalRes(typename Output::Ref out, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     out.template Get<OUT_ATT>() = Log(cur.template Get<STA_qIJ>().inverse()*
                                       cur.template Get<STA_qIB>()*cur.template Get<STA_qBV>()*
                                       meas_->GetAtt().inverse());
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     const Vec3 attErr = Log(cur.template Get<STA_qIJ>().inverse()*
                                       cur.template Get<STA_qIB>()*cur.template Get<STA_qBV>()*
                                       meas_->GetAtt().inverse());

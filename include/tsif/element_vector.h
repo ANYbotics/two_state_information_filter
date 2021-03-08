@@ -129,7 +129,7 @@ class ElementVectorBase{
     Boxplus<OtherDerived,C+1>(vec,out);
   }
   template<typename OtherDerived, int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void Boxplus(const VecCRefX& vec, ElementVectorBase<OtherDerived,Elements...>& out) const{}
+  void Boxplus(const VecCRefX& /*vec*/, ElementVectorBase<OtherDerived,Elements...>& /*out*/) const{}
 
   template<typename OtherDerived, int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Boxminus(const ElementVectorBase<OtherDerived,Elements...>& ref, VecRefX out) const{
@@ -141,7 +141,7 @@ class ElementVectorBase{
     Boxminus<OtherDerived,C+1>(ref,out);
   }
   template<typename OtherDerived, int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void Boxminus(const ElementVectorBase<OtherDerived,Elements...>& ref, VecRefX out) const{}
+  void Boxminus(const ElementVectorBase<OtherDerived,Elements...>& /*ref*/, VecRefX /*out*/) const{}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void GetVec(VecRefX vec) const{
@@ -153,7 +153,7 @@ class ElementVectorBase{
     GetVec<C+1>(vec);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void GetVec(VecRefX vec) const{}
+  void GetVec(VecRefX /*vec*/) const{}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Scale(double w){
@@ -162,7 +162,7 @@ class ElementVectorBase{
     Scale<C+1>(w);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void Scale(double w){}
+  void Scale(double /*w*/){}
 
   int Start(int I) const{
     return static_cast<const Derived&>(*this).Start(I);
@@ -300,7 +300,7 @@ class ElementVector: public ElementVectorBase<ElementVector<Elements...>,Element
     return (std::tuple_element<C,Tuple>::type::kI == I) ? 0 : std::tuple_element<C,Tuple>::type::kDim + _Start<C+1>(I);
   }
   template<int C = 0, int kNInternal = kN, typename std::enable_if<(C >= kNInternal)>::type* = nullptr>
-  static constexpr int _Start(int I){
+  static constexpr int _Start(int /*I*/){
     return -1;
   }
   static constexpr int Dim(){

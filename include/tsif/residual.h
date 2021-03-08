@@ -21,25 +21,25 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
   const bool isMandatory_;   // Is this measurement required at every timestep (should then typically be splitable)
   bool isActive_;           // Temporary, is a measurement currently available
   Residual(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true):
+      meas_(nullptr),
       isSplitable_(isSplitable),
       isMergeable_(isMergeable),
-      isMandatory_(isMandatory),
-      meas_(nullptr){
+      isMandatory_(isMandatory){
     dt_ = 0.1;
     w_ = 1.0;
     isActive_ = false;
-    std::shared_ptr<Meas> meas(new Meas());
+    std::shared_ptr<Meas> meas = std::make_shared<Meas>();
     meas->SetRandom();
     meas_ = meas;
   }
   virtual ~Residual(){};
-  virtual int EvalRes(typename Out::Ref out, const typename Pre::CRef pre, const typename Cur::CRef cur){
+  virtual int EvalRes(typename Out::Ref /*out*/, const typename Pre::CRef /*pre*/, const typename Cur::CRef /*cur*/){
     return 1;
   }
-  virtual int JacPre(MatRefX J, const typename Pre::CRef pre, const typename Cur::CRef cur){
+  virtual int JacPre(MatRefX /*J*/, const typename Pre::CRef /*pre*/, const typename Cur::CRef /*cur*/){
     return 1;
   }
-  virtual int JacCur(MatRefX J, const typename Pre::CRef pre, const typename Cur::CRef cur){
+  virtual int JacCur(MatRefX /*J*/, const typename Pre::CRef /*pre*/, const typename Cur::CRef /*cur*/){
     return 1;
   }
   int EvalImpl(typename Out::Ref out, const std::tuple<typename Pre::CRef,typename Cur::CRef> ins){
@@ -73,8 +73,8 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
     cur.SetRandom();
     return JacCurTest(th,d,pre,cur);
   }
-  virtual void SplitMeasurements(const TimePoint& t0, const TimePoint& t1, const TimePoint& t2,
-                                 std::shared_ptr<const Meas>& m0,
+  virtual void SplitMeasurements(const TimePoint& /*t0*/, const TimePoint& /*t1*/, const TimePoint& /*t2*/,
+                                 std::shared_ptr<const Meas>& /*m0*/,
                                  std::shared_ptr<const Meas>& m1,
                                  std::shared_ptr<const Meas>& m2) const{
     if (isSplitable_){
@@ -84,11 +84,11 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
     }
   }
   virtual void MergeMeasurements(const TimePoint& t0, const TimePoint& t1, const TimePoint& t2,
-                                 std::shared_ptr<const Meas>& m0,
+                                 std::shared_ptr<const Meas>& /*m0*/,
                                  std::shared_ptr<const Meas>& m1,
                                  std::shared_ptr<const Meas>& m2) const{
     if (isMergeable_){
-      std::shared_ptr<Meas> newMeas(new Meas());
+      std::shared_ptr<Meas> newMeas = std::make_shared<Meas>();
       Vec<Meas::Dim()> dif;
       m1->Boxminus(*m2,dif);
       m2->Boxplus(toSec(t1 - t0) / toSec(t2 - t0) * dif, *newMeas);
@@ -97,7 +97,7 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
       assert(false);
     }
   }
-  virtual void AddNoise(typename Out::Ref out, MatRefX J_pre, MatRefX J_cur, const typename Previous::CRef pre, const typename Current::CRef cur){
+  virtual void AddNoise(typename Out::Ref out, MatRefX J_pre, MatRefX J_cur, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     AddWeight(GetWeight(),out,J_pre,J_cur);
   }
   void AddWeight(double w, typename Out::Ref out, MatRefX J_pre, MatRefX J_cur){
@@ -114,7 +114,7 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
         Output::Start(OUT),cur.Start(STA)) = Jsub;
   }
   template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
-  void SetJacCur(MatRefX J, const typename Current::CRef cur, MatCRefX Jsub){
+  void SetJacCur(MatRefX /*J*/, const typename Current::CRef /*cur*/, MatCRefX /*Jsub*/){
   }
   template<int OUT,int STA, typename std::enable_if<(STA>=0 & OUT>=0)>::type* = nullptr>
   void SetJacPre(MatRefX J, const typename Previous::CRef pre, MatCRef<Output::template GetElementDim<OUT>(),Previous::template GetElementDim<STA>()> Jsub){
@@ -122,7 +122,7 @@ class Residual: public Model<Residual<Out,Pre,Cur,Meas>,Out,Pre,Cur>{
         Output::Start(OUT),pre.Start(STA)) = Jsub;
   }
   template<int OUT,int STA, typename std::enable_if<(STA<0 | OUT<0)>::type* = nullptr>
-  void SetJacPre(MatRefX J, const typename Previous::CRef pre, MatCRefX Jsub){
+  void SetJacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, MatCRefX /*Jsub*/){
   }
 };
 

@@ -28,7 +28,7 @@ using Mat2 = Mat<2>;
 using Mat3 = Mat<3>;
 using MatX = Mat<>;
 template<int N = -1, int M = N>
-using MatRef = typename std::conditional<(N==1 & M>1),
+using MatRef = typename std::conditional<((N==1) & (M>1)),
                                          Eigen::Ref<Mat<N,M>,0,Eigen::InnerStride<>>,
                                          Eigen::Ref<Mat<N,M>>>::type;
 using MatRef2 = MatRef<2>;

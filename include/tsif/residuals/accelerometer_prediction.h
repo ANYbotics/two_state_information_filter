@@ -42,14 +42,14 @@ class AccelerometerPrediction: public AccelerometerPredictionBase<OUT_VEL,STA_VE
         - dt_*(meas_->GetAcc()-pre.template Get<STA_ACB>()+pre.template Get<STA_ATT>().inverse().toRotationMatrix()*g_);
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     this->template SetJacPre<OUT_VEL, STA_VEL>(J, pre, -(Mat3::Identity() - SSM(dt_*pre.template Get<STA_ROR>())));
     this->template SetJacPre<OUT_VEL, STA_ATT>(J, pre, -pre.template Get<STA_ATT>().inverse().toRotationMatrix()*SSM(g_*dt_));
     this->template SetJacPre<OUT_VEL, STA_ROR>(J, pre, -SSM(dt_*pre.template Get<STA_VEL>()));
     this->template SetJacPre<OUT_VEL, STA_ACB>(J, pre, dt_*Mat3::Identity());
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     this->template SetJacCur<OUT_VEL, STA_VEL>(J, cur, Mat3::Identity());
     return 0;
   }

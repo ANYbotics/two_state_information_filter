@@ -1,7 +1,7 @@
 #include "tsif/filters/imu_gps.h"
 #include "tsif/utils/simulator.h"
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv**/){
   tsif::ImuGpsFilter filter;
   Simulator sim;
   sim.allowOutlier_ = false;

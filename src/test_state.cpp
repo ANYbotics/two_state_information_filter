@@ -2,7 +2,7 @@
 
 using namespace tsif;
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
 
   typedef ElementVector<Element<Vec3,0>,Element<double,1>> ElementVectorA;
   typedef ElementVector<Element<double,2>,Element<double,1>> ElementVectorB;

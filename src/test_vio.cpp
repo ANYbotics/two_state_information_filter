@@ -1,7 +1,7 @@
 #include "tsif/utils/simulator.h"
 #include "tsif/filters/vio.h"
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
   std::string optionFile = "/home/michael/workspace/generalized_information_filter/cfg/vio.cfg";
   std::string taskFile = "/home/michael/workspace/generalized_information_filter/cfg/vio_task.cfg";
   bool useSim = tsif::OptionLoader::Instance().Get<int>(optionFile,"use_sim");

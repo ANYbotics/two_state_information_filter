@@ -78,7 +78,7 @@ class Filter{
     TSIF_LOG(std::get<C>(timelines_).Print(start, startOffset, resolution));
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void PrintTimelines(const TimePoint& start, int startOffset, double resolution){
+  void PrintTimelines(const TimePoint& /*start*/, int startOffset, double /*resolution*/){
     std::ostringstream out;
     for (int i = 0; i < startOffset; i++){
       out << " ";
@@ -107,7 +107,7 @@ class Filter{
     SplitAndMerge<C+1>(time,times);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void SplitAndMerge(TimePoint time, const std::set<TimePoint>& times){}
+  void SplitAndMerge(TimePoint /*time*/, const std::set<TimePoint>& /*times*/){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Clean(TimePoint time){
@@ -115,7 +115,7 @@ class Filter{
     Clean<C+1>(time);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void Clean(TimePoint time){}
+  void Clean(TimePoint /*time*/){}
 
   template<int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Clear(){
@@ -135,7 +135,7 @@ class Filter{
       is_initialized_ = true;
     }
   }
-  virtual void ComputeLinearizationPoint(const TimePoint& t){
+  virtual void ComputeLinearizationPoint(const TimePoint& /*t*/){
     curLinState_ = state_;
   }
   virtual void PreProcess(){};
@@ -251,7 +251,7 @@ class Filter{
     return PreProcessResidual<C+1>(t) + std::tuple_element<C,ResidualTuple>::type::Output::Dim();
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  int PreProcessResidual(TimePoint t){
+  int PreProcessResidual(TimePoint /*t*/){
     return 0;
   }
 
@@ -272,7 +272,7 @@ class Filter{
     ConstructProblem<C+1>(start+Output::Dim()*std::get<C>(residuals_).isActive_);
   }
   template<int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void ConstructProblem(int start){
+  void ConstructProblem(int /*start*/){
   }
 
   template<int N = 0, typename std::enable_if<(N < kN)>::type* = nullptr>
@@ -283,7 +283,7 @@ class Filter{
   }
 
   template<int N = 0, typename std::enable_if<(N >= kN)>::type* = nullptr>
-  int JacTestAll(double th, double d, const State& pre, const State& cur){
+  int JacTestAll(double /*th*/, double /*d*/, const State& /*pre*/, const State& /*cur*/){
     return 0;
   }
 
@@ -295,7 +295,7 @@ class Filter{
   }
 
   template<int N = 0, typename std::enable_if<(N >= kN)>::type* = nullptr>
-  int JacTestAll(double th, double d){
+  int JacTestAll(double /*th*/, double /*d*/){
     return 0;
   }
 
@@ -327,7 +327,7 @@ class Filter{
       }
       if(C==State::kN-1) out << std::endl;
     }
-    out << PrintConnectivityRes<N+(C==State::kN-1 & B),(C==State::kN-1)?0:C+1,((C==State::kN-1)?!B:B)>();
+    out << PrintConnectivityRes<N+((C==State::kN-1) & B),(C==State::kN-1)?0:C+1,((C==State::kN-1)?!B:B)>();
     return out.str();
   }
   template<int N = 0, int C = 0, bool B = false, typename std::enable_if<(N >= kN)>::type* = nullptr>

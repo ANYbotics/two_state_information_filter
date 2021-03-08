@@ -37,16 +37,16 @@ class PositionUpdate: public PositionUpdateBase<OUT_POS,STA_IrIB,STA_qIB,STA_IrI
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
   PositionUpdate(): Base(false,false,false){}
-  int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int EvalRes(typename Output::Ref out, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     out.template Get<OUT_POS>() = cur.template Get<STA_qIJ>().inverse().toRotationMatrix()*(
         cur.template Get<STA_IrIB>() - cur.template Get<STA_IrIJ>()
        + cur.template Get<STA_qIB>().toRotationMatrix()*cur.template Get<STA_BrBV>()) - meas_->GetPos();
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     const Vec3 pos = cur.template Get<STA_qIJ>().inverse().toRotationMatrix()*(
         cur.template Get<STA_IrIB>() - cur.template Get<STA_IrIJ>()
        + cur.template Get<STA_qIB>().toRotationMatrix()*cur.template Get<STA_BrBV>());

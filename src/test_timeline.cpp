@@ -34,12 +34,12 @@ class ResidualPos: public ResidualPosBase<OUT_POS,STA_POS,STA_VEL>{
                                   - dt_*pre.template Get<STA_VEL>();
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_POS)) = -Mat3::Identity();
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_VEL)) = -Mat3::Identity()*dt_;
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_POS)) = Mat3::Identity();
     return 0;
   }
@@ -65,18 +65,18 @@ class ResidualVel: public ResdidualVelBase<OUT_VEL,STA_VEL>{
     out.template Get<OUT_VEL>() = cur.template Get<STA_VEL>() - pre.template Get<STA_VEL>() - dt_*meas_->GetAcc();
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     J.block<3,3>(Output::Start(OUT_VEL),pre.Start(STA_VEL)) = -Mat3::Identity();
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     J.block<3,3>(Output::Start(OUT_VEL),pre.Start(STA_VEL)) = Mat3::Identity();
     return 0;
   }
 };
 
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
   typedef Filter<ResidualPos<0,0,1>,ResidualVel<0,1>> FilterA;
   FilterA filter;
   FilterA::State state_pre;

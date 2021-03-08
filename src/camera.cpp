@@ -11,20 +11,20 @@ namespace tsif{
     K_(1,1) = 457.296;
     K_(1,2) = 248.375;
     type_ = RADTAN;
-  };
-
-  Camera::~Camera(){};
-
-  void Camera::LoadCameraMatrix(const std::string& filename){
   }
 
-  void Camera::LoadRadtan(const std::string& filename){
+  Camera::~Camera(){}
+
+  void Camera::LoadCameraMatrix(const std::string& /*filename*/){
   }
 
-  void Camera::LoadEquidist(const std::string& filename){
+  void Camera::LoadRadtan(const std::string& /*filename*/){
   }
 
-  void Camera::Load(const std::string& filename){
+  void Camera::LoadEquidist(const std::string& /*filename*/){
+  }
+
+  void Camera::Load(const std::string& /*filename*/){
   }
 
   void Camera::DistortRadtan(const Eigen::Vector2d& in, Eigen::Vector2d& out) const{

@@ -165,16 +165,16 @@ class Timeline<MeasEmpty>{
   Timeline(Duration max_wait_time,Duration min_wait_time):
       max_wait_time_(max_wait_time),min_wait_time_(min_wait_time){
   }
-  void Add(TimePoint t,std::shared_ptr<const MeasEmpty> m){
+  void Add(TimePoint /*t*/,std::shared_ptr<const MeasEmpty> /*m*/){
     TSIF_LOGW("Unnecessary addition of empty measurement!");
   }
-  bool HasMeas(TimePoint t){
+  bool HasMeas(TimePoint /*t*/){
     return true;
   }
-  std::shared_ptr<const MeasEmpty> Get(TimePoint t){
+  std::shared_ptr<const MeasEmpty> Get(TimePoint /*t*/){
     return std::make_shared<MeasEmpty>();
   }
-  void Clean(TimePoint t){
+  void Clean(TimePoint /*t*/){
   }
   void Clear(){
   }
@@ -184,15 +184,15 @@ class Timeline<MeasEmpty>{
   TimePoint GetFirstTime() const{
     return TimePoint::min();
   }
-  TimePoint GetMaximalUpdateTime(TimePoint current) const{
+  TimePoint GetMaximalUpdateTime(TimePoint /*current*/) const{
     return TimePoint::max();
   }
-  void GetAllInRange(std::set<TimePoint>& times, TimePoint start, TimePoint end) const{
+  void GetAllInRange(std::set<TimePoint>& /*times*/, TimePoint /*start*/, TimePoint /*end*/) const{
   }
   template<typename Residual>
-  void SplitAndMerge(TimePoint time, const std::set<TimePoint>& times,const Residual& res){
+  void SplitAndMerge(TimePoint /*time*/, const std::set<TimePoint>& /*times*/, const Residual& /*res*/){
   }
-  std::string Print(const TimePoint& start, int start_offset, double resolution) const{
+  std::string Print(const TimePoint& /*start*/, int start_offset, double /*resolution*/) const{
     const int c = start_offset > 4 ? start_offset - 4 : 0;
     std::ostringstream out;
     for(int i=0;i<c;i++) out << "-";

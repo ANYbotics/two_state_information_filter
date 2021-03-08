@@ -79,7 +79,7 @@ class Element{
     Traits::Boxplus(x_, vec, out.Get());
   }
   template<bool B = I>=0,typename std::enable_if<!B>::type* = nullptr>
-  void Boxplus(const VecCRef<kDim>& vec, Element<T,I>& out) const{
+  void Boxplus(const VecCRef<kDim>& /*vec*/, Element<T,I>& out) const{
     out.Get() = x_;
   }
   template<bool B = I>=0,typename std::enable_if<B>::type* = nullptr>
@@ -87,7 +87,7 @@ class Element{
     Traits::Boxminus(x_, ref.Get(), vec);
   }
   template<bool B = I>=0,typename std::enable_if<!B>::type* = nullptr>
-  void Boxminus(const Element<T,I>& ref, VecRef<kDim> vec) const{
+  void Boxminus(const Element<T,I>& /*ref*/, VecRef<kDim> /*vec*/) const{
   }
   template<bool B = I>=0,typename std::enable_if<B>::type* = nullptr>
   Mat<kDim> BoxplusJacInp(const VecCRef<kDim>& vec) const{
@@ -110,7 +110,7 @@ class Element{
     return Traits::BoxminusJacInp(x_, ref.Get());
   }
   template<bool B = I>=0,typename std::enable_if<!B>::type* = nullptr>
-  Mat<kDim> BoxminusJacInp(const Element<T,I>& ref) const{
+  Mat<kDim> BoxminusJacInp(const Element<T,I>& /*ref*/) const{
     return Mat<kDim>::Zero();
   }
   template<bool B = I>=0,typename std::enable_if<B>::type* = nullptr>
@@ -118,7 +118,7 @@ class Element{
     return Traits::BoxminusJacRef(x_, ref.Get());
   }
   template<bool B = I>=0,typename std::enable_if<!B>::type* = nullptr>
-  Mat<kDim> BoxminusJacRef(const Element<T,I>& ref) const{
+  Mat<kDim> BoxminusJacRef(const Element<T,I>& /*ref*/) const{
     return Mat<kDim>::Zero();
   }
   template<bool B = I>=0,typename std::enable_if<B>::type* = nullptr>
@@ -163,16 +163,16 @@ class ElementTraits<double>{
   static void Boxminus(const double& in, const double& ref, VecRef<kDim> vec){
     vec(0) = in - ref;
   }
-  static Mat<kDim> BoxplusJacInp(const double& in, const VecCRef<kDim>& vec){
+  static Mat<kDim> BoxplusJacInp(const double& /*in*/, const VecCRef<kDim>& /*vec*/){
     return Mat<kDim>::Identity();
   }
-  static Mat<kDim> BoxplusJacVec(const double& in, const VecCRef<kDim>& vec){
+  static Mat<kDim> BoxplusJacVec(const double& /*in*/, const VecCRef<kDim>& /*vec*/){
     return Mat<kDim>::Identity();
   }
-  static Mat<kDim> BoxminusJacInp(const double& in, const double& ref){
+  static Mat<kDim> BoxminusJacInp(const double& /*in*/, const double& /*ref*/){
     return Mat<kDim>::Identity();
   }
-  static Mat<kDim> BoxminusJacRef(const double& in, const double& ref){
+  static Mat<kDim> BoxminusJacRef(const double& /*in*/, const double& /*ref*/){
     return -Mat<kDim>::Identity();
   }
   static Vec<kDim> GetVec(const double& x){
@@ -214,10 +214,10 @@ class ElementTraits<Vec<N>>{
   static Mat<kDim> BoxplusJacVec(const Vec<N>& in, const VecCRef<kDim>& vec){
     return Mat<kDim>::Identity();
   }
-  static Mat<kDim> BoxminusJacInp(const Vec<N>& in, const Vec<N>& ref){
+  static Mat<kDim> BoxminusJacInp(const Vec<N>& /*in*/, const Vec<N>& /*ref*/){
     return Mat<kDim>::Identity();
   }
-  static Mat<kDim> BoxminusJacRef(const Vec<N>& in, const Vec<N>& ref){
+  static Mat<kDim> BoxminusJacRef(const Vec<N>& /*in*/, const Vec<N>& /*ref*/){
     return -Mat<kDim>::Identity();
   }
   static Vec<kDim> GetVec(const Vec<N>& x){
@@ -259,10 +259,10 @@ class ElementTraits<Quat>{
   static void Boxminus(const Quat& in, const Quat& ref, VecRef<kDim> vec){
     vec = tsif::Boxminus(in,ref);
   }
-  static Mat<kDim> BoxplusJacInp(const Quat& in, const VecCRef<kDim>& vec){
+  static Mat<kDim> BoxplusJacInp(const Quat& /*in*/, const VecCRef<kDim>& vec){
     return Exp(vec).toRotationMatrix();
   }
-  static Mat<kDim> BoxplusJacVec(const Quat& in, const VecCRef<kDim>& vec){
+  static Mat<kDim> BoxplusJacVec(const Quat& /*in*/, const VecCRef<kDim>& vec){
     return GammaMat(vec);
   }
   static Mat<kDim> BoxminusJacInp(const Quat& in, const Quat& ref){
@@ -369,18 +369,18 @@ class ElementTraits<std::array<T, N>>{
     }
   }
   static void Boxplus(const array& in, const VecCRef<kDim>& vec, array& out){
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       Traits::Boxplus(in.at(i), vec.template block<kElementDim, 1>(i * kElementDim, 0), out.at(i));
     }
   }
   static void Boxminus(const array& in, const array& ref, VecRef<kDim> vec){
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       Traits::Boxminus(in.at(i), ref.at(i), vec.template block<kElementDim, 1>(i * kElementDim, 0));
     }
   }
   static Mat<kDim> BoxplusJacInp(const array& in, const VecCRef<kDim>& vec){
     Mat<kDim> J = Mat<kDim>::Zero();
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       J.template block<kElementDim, kElementDim>(i * kElementDim, i * kElementDim) =
           Traits::BoxplusJacInp(in.at(i), vec.template block<kElementDim, 1>(i * kElementDim, 0));
     }
@@ -388,7 +388,7 @@ class ElementTraits<std::array<T, N>>{
   }
   static Mat<kDim> BoxplusJacVec(const array& in, const VecCRef<kDim>& vec){
     Mat<kDim> J = Mat<kDim>::Zero();
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       J.template block<kElementDim, kElementDim>(i * kElementDim, i * kElementDim) =
           Traits::BoxplusJacVec(in.at(i), vec.template block<kElementDim, 1>(i * kElementDim, 0));
     }
@@ -396,7 +396,7 @@ class ElementTraits<std::array<T, N>>{
   }
   static Mat<kDim> BoxminusJacInp(const array& in, const array& ref){
     Mat<kDim> J = Mat<kDim>::Zero();
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       J.template block<kElementDim, kElementDim>(i * kElementDim, i * kElementDim) =
           Traits::BoxminusJacInp(in.at(i), ref.at(i));
     }
@@ -404,7 +404,7 @@ class ElementTraits<std::array<T, N>>{
   }
   static Mat<kDim> BoxminusJacRef(const array& in, const array& ref){
     Mat<kDim> J = Mat<kDim>::Zero();
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       J.template block<kElementDim, kElementDim>(i * kElementDim, i * kElementDim) =
           Traits::BoxminusJacRef(in.at(i), ref.at(i));
     }
@@ -412,13 +412,13 @@ class ElementTraits<std::array<T, N>>{
   }
   static Vec<kDim> GetVec(const array& x){
     Vec<kDim> vec;
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       vec.template segment<kElementDim>(i * kElementDim) = x.at(i);
     }
     return vec;
   }
   static void Scale(double w, array& x){
-    for (int i = 0; i < N; i++){
+    for (size_t i = 0; i < N; i++){
       Traits::Scale(w,x.at(i));
     }
   }

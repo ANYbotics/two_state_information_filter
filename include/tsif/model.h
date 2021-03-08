@@ -44,14 +44,14 @@ class Model{
     return 0;
   }
   template<int N, int C = 0, typename std::enable_if<(C >= std::tuple_element<N,std::tuple<Ins...>>::type::kN)>::type* = nullptr>
-  int JacFindifFull(double d, MatRefX J, const std::tuple<typename Ins::CRef...> insRef){
+  int JacFindifFull(double /*d*/, MatRefX /*J*/, const std::tuple<typename Ins::CRef...> /*insRef*/){
     return 0;
   }
   template<int N>
   int JacTest(double th, double d, const std::tuple<typename Ins::CRef...> ins){
     const int outDim = Out::Dim();
     const int inDim = std::get<N>(ins).Dim();
-    if(outDim > 0 & inDim > 0){
+    if((outDim > 0) & (inDim > 0)){
       MatX J(outDim,inDim);
       J.setZero();
       MatX J_FD(outDim,inDim);

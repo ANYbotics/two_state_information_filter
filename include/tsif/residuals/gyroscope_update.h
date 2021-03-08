@@ -35,14 +35,14 @@ class GyroscopeUpdate: public GyroscopeUpdateBase<OUT_ROR,STA_ROR,STA_GYB>{
   typedef typename Base::Previous Previous;
   typedef typename Base::Current Current;
   GyroscopeUpdate(bool isSplitable = true,bool isMergeable = true,bool isMandatory = true): Base(isSplitable,isMergeable,isMandatory){}
-  int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int EvalRes(typename Output::Ref out, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     out.template Get<OUT_ROR>() = cur.template Get<STA_ROR>() + cur.template Get<STA_GYB>() - meas_->GetGyr();
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     this->template SetJacCur<OUT_ROR,STA_ROR>(J,cur,Mat3::Identity());
     this->template SetJacCur<OUT_ROR,STA_GYB>(J,cur,Mat3::Identity());
     return 0;

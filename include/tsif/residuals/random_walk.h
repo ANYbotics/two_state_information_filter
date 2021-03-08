@@ -35,7 +35,7 @@ class RandomWalk: public RandomWalkBase<Elements...>{
     return 0;
   }
   template<int C=0, typename std::enable_if<(C >= MyElementVector::kN)>::type* = nullptr>
-  int _EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int _EvalRes(typename Output::Ref /*out*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
   int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
@@ -50,7 +50,7 @@ class RandomWalk: public RandomWalkBase<Elements...>{
     return 0;
   }
   template<int C=0, typename std::enable_if<(C >= MyElementVector::kN)>::type* = nullptr>
-  int _JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int _JacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
   int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
@@ -65,7 +65,7 @@ class RandomWalk: public RandomWalkBase<Elements...>{
     return 0;
   }
   template<int C=0, typename std::enable_if<(C >= MyElementVector::kN)>::type* = nullptr>
-  int _JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int _JacCur(MatRefX /*J*/, const typename Previous::CRef /*pre*/, const typename Current::CRef /*cur*/){
     return 0;
   }
   virtual double GetWeight(){

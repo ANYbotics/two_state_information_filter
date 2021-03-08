@@ -27,13 +27,13 @@ class PositionFindif: public PositionFindifBase<OUT_POS,STA_POS,STA_VEL,STA_ATT>
       - dt_*pre.template Get<STA_ATT>().toRotationMatrix()*pre.template Get<STA_VEL>();
     return 0;
   }
-  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacPre(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef /*cur*/){
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_POS)) = -Mat3::Identity();
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_VEL)) = -pre.template Get<STA_ATT>().toRotationMatrix()*dt_;
     J.block<3,3>(Output::Start(OUT_POS),pre.Start(STA_ATT)) = SSM(dt_*pre.template Get<STA_ATT>().toRotationMatrix()*pre.template Get<STA_VEL>());
     return 0;
   }
-  int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+  int JacCur(MatRefX J, const typename Previous::CRef /*pre*/, const typename Current::CRef cur){
     J.block<3,3>(Output::Start(OUT_POS),cur.Start(STA_POS)) = Mat3::Identity();
     return 0;
   }

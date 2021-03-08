@@ -2,7 +2,7 @@
 
 using namespace tsif;
 
-int main(int argc, char** argv){
+int main(int /*argc*/, char** /*argv*/){
   tsif::UnitVector uv(Vec3(1,2,3));
   std::cout << uv.GetVec().transpose() << std::endl;
   std::cout << Vec3(1,2,3).normalized().transpose() << std::endl;
