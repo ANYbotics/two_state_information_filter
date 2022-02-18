@@ -13,8 +13,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-<!--   <build_depend>cmake_clang_tools</build_depend> -->
-  
+  <!--<!-- <build_depend>cmake_clang_tools</build_depend> -->-->
+
   <depend>eigen</depend>
 
 <!--   <test_depend>cmake_code_coverage</test_depend> -->

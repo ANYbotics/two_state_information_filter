@@ -57,19 +57,19 @@ install(DIRECTORY include/tsif/
 )
 
 # Install executables and library
-install(TARGETS 
+install(TARGETS
           ${PROJECT_NAME}
-          test_state 
-          test_quaternion 
-          test_unit_vector 
-          test_timeline 
+          test_state
+          test_quaternion
+          test_unit_vector
+          test_timeline
           test_imu_gps mytest
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# Install config 
+# Install config
 install(DIRECTORY cfg
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
@@ -108,9 +108,9 @@ endif()
 #################
 ## Clang_tools ##
 #################
-find_package(cmake_clang_tools QUIET)
-if(cmake_clang_tools_FOUND)
-  add_default_clang_tooling(
-    DISABLE_CLANG_FORMAT
-  )
-endif(cmake_clang_tools_FOUND)
+#find_package(cmake_clang_tools QUIET)
+#if(cmake_clang_tools_FOUND)
+#  add_default_clang_tooling(
+#    DISABLE_CLANG_FORMAT
+#  )
+#endif(cmake_clang_tools_FOUND)
