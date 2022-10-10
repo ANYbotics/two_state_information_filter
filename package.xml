@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>two_state_information_filter</name>
-  <version>0.4.8</version>
+  <version>0.4.9</version>
   <description>two-state information filter</description>
   <url>github.com/ethz-asl/two_state_information_filter</url>
   <author email="bloeschm@ethz.ch">Michael Bloesch</author>
