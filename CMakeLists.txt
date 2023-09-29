@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.5.1)
 project(two_state_information_filter)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 # Note: the warning about unused functions has been silenced because it has been found to give
