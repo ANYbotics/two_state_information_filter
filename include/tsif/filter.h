@@ -147,34 +147,18 @@ class Filter{
       Init(GetMaxMinTime());
     }
 
-    if(is_initialized_){
-      TSIF_LOG("Timelines before processing:");
-      PrintTimelines(time_, 20, 0.001);
-      TSIF_LOG("State time:\t" << Print(time_));
-      TimePoint current = GetCurrentTime();
-      TSIF_LOG("Current time:\t" << Print(current));
-      TimePoint maxUpdateTime = GetMaxUpdateTime(current);
-      TSIF_LOG("Maximal update time:\t" << Print(maxUpdateTime));
-      std::set<TimePoint> times;
-      GetTimeList(times, maxUpdateTime, include_max_);
-      std::ostringstream out;
-      out << "Update times:\t";
-      for (const auto& t : times){
-        out << Print(t) << " ";
-      }
-      TSIF_LOG(out.str());
-      SplitAndMerge(time_,times);
-      TSIF_LOG("Timelines after split and merging:");
-      PrintTimelines(time_, 20, 0.001);
+    TimePoint current = GetCurrentTime();
+    TimePoint maxUpdateTime = GetMaxUpdateTime(current);
 
-      // Carry out updates
-      for (const auto& t : times){
-        MakeUpdateStep(t);
-      }
-      Clean(time_);
-      TSIF_LOG("Timelines after cleaning:");
-      PrintTimelines(time_, 20, 0.001);
+    std::set<TimePoint> times;
+    GetTimeList(times, maxUpdateTime, include_max_);
+    SplitAndMerge(time_,times);
+
+    // Carry out updates
+    for (const auto& t : times){
+      MakeUpdateStep(t);
     }
+    Clean(time_);
   }
 
   void MakeUpdateStep(TimePoint t){
