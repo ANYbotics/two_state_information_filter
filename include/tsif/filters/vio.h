@@ -190,7 +190,7 @@ class VioFilter: public VioFilterBase<N> {
     Timer timer;
     if(doDraw_){
       if(!m->isSim_){
-        cv::cvtColor(m->img_,drawImg_,CV_GRAY2BGR);
+        cv::cvtColor(m->img_,drawImg_,cv::COLOR_GRAY2BGR);
       } else {
         drawImg_ = cv::Mat::zeros(480, 752, CV_8U);
         cv::drawKeypoints(drawImg_,m->keyPoints_,drawImg_,cv::Scalar(255,50,50));
