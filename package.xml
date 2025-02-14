@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <package format="3">
   <name>two_state_information_filter</name>
-  <version>0.4.23</version>
+  <version>0.4.24</version>
   <description>two-state information filter</description>
   <author email="bloeschm@ethz.ch">Michael Bloesch</author>
   <author>Michael Burri</author>
