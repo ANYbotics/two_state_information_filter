@@ -18,27 +18,15 @@ if("$ENV{ROS_VERSION}" STREQUAL "1")
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
-)
+###########
+## Build ##
+###########
 
-add_executable(test_state src/test_state.cpp)
-add_executable(test_quaternion src/test_quaternion.cpp)
-add_executable(test_unit_vector src/test_unit_vector.cpp)
-add_executable(test_timeline src/test_timeline.cpp)
-add_executable(test_imu_gps src/test_imu_gps.cpp src/simulator.cpp src/camera.cpp)
-
-add_executable(mytest src/test.cpp)
-
-
-if(ENABLE_OPENCV)
-  set(OpenCV_DIR /opt/ros/kinetic/share/OpenCV-3.2.0-dev)
-  find_package(OpenCV REQUIRED)
-  add_executable(test_vio src/test_vio.cpp src/simulator.cpp src/camera.cpp)
-  target_link_libraries(test_vio ${OpenCV_LIBS})
-endif()
+add_library(${PROJECT_NAME} INTERFACE)
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+target_include_directories(${PROJECT_NAME} INTERFACE include)
+target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE ${catkin_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen ${catkin_LIBRARIES})
 
 catkin_package(
   INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
@@ -46,34 +34,28 @@ catkin_package(
   CATKIN_DEPENDS
 )
 
-add_library(${PROJECT_NAME}
-  src/camera.cpp
-  src/simulator.cpp
-)
+add_executable(test_state src/test_state.cpp)
+target_link_libraries(test_state ${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} pthread)
+add_executable(test_quaternion src/test_quaternion.cpp)
+target_link_libraries(test_quaternion ${PROJECT_NAME})
 
-# Install header
+add_executable(test_unit_vector src/test_unit_vector.cpp)
+target_link_libraries(test_unit_vector ${PROJECT_NAME})
+
+add_executable(test_timeline src/test_timeline.cpp)
+target_link_libraries(test_timeline ${PROJECT_NAME})
+
+add_executable(mytest src/test.cpp)
+target_link_libraries(mytest ${PROJECT_NAME})
+
+
+#############
+## Install ##
+#############
+
 install(DIRECTORY include/tsif/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/tsif/
-)
-
-# Install executables and library
-install(TARGETS
-          ${PROJECT_NAME}
-          test_state
-          test_quaternion
-          test_unit_vector
-          test_timeline
-          test_imu_gps mytest
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-# Install config
-install(DIRECTORY cfg
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 #############
@@ -129,38 +111,29 @@ find_package(ament_cmake REQUIRED)
 # NOTE(apoghosov): what I am trying to do here is to port to ROS2 the best way possible but I can
 # not really take care about fixing everyting comming from ROS1. So, I leave it up maintainers to
 # adjust dependencies and define the transitive conditional compiler flags for dependents properly ...
-if(ENABLE_OPENCV)
-  find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs calib3d highgui)
-endif()
 
 foreach(PKG ${PACKAGE_DEPENDENCIES})
   find_package(${PKG} REQUIRED)
 endforeach()
 
-add_library(${PROJECT_NAME} SHARED
-  src/camera.cpp
-  src/simulator.cpp
-  )
+add_library(${PROJECT_NAME} INTERFACE)
 
-target_link_libraries(${PROJECT_NAME}
-  Eigen3::Eigen
-  $<$<BOOL:ENABLE_OPENCV>:opencv_core opencv_calib3d opencv_imgproc opencv_imgcodecs opencv_highgui>
-  )
+target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen)
 
 target_include_directories(${PROJECT_NAME}
-  PUBLIC
+  INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/tsif>
   )
 
 ament_target_dependencies(${PROJECT_NAME} ${PACKAGE_DEPENDENCIES})
 
-install(DIRECTORY include/tsif/
-  DESTINATION include/tsif/
-  )
+#############
+## Install ##
+#############
 
-install(DIRECTORY cfg
-  DESTINATION share/${PROJECT_NAME}
+install(DIRECTORY include/
+  DESTINATION include/tsif
   )
 
 install(TARGETS ${PROJECT_NAME}
@@ -179,65 +152,17 @@ ament_export_dependencies(${PACKAGE_DEPENDENCIES})
 
 if(BUILD_TESTING)
 
-  add_executable(test_state
-    src/test_state.cpp
-    )
+  add_executable(test_state src/test_state.cpp)
+  target_link_libraries(test_state ${PROJECT_NAME})
 
-  target_link_libraries(test_state
-    ${PROJECT_NAME}
-    )
+  add_executable(test_quaternion src/test_quaternion.cpp)
+  target_link_libraries(test_quaternion ${PROJECT_NAME})
 
-  add_executable(test_quaternion
-    src/test_quaternion.cpp
-    )
+  add_executable(test_unit_vector src/test_unit_vector.cpp)
+  target_link_libraries(test_unit_vector ${PROJECT_NAME})
 
-  target_link_libraries(test_quaternion
-    ${PROJECT_NAME}
-    )
-
-  add_executable(test_unit_vector
-    src/test_unit_vector.cpp
-    )
-
-  target_link_libraries(test_unit_vector
-    ${PROJECT_NAME}
-    )
-
-  add_executable(test_timeline
-    src/test_timeline.cpp
-    )
-
-  target_link_libraries(test_timeline
-    ${PROJECT_NAME}
-    )
-
-  add_executable(test_imu_gps
-    src/test_imu_gps.cpp
-    )
-
-  target_link_libraries(test_imu_gps
-    ${PROJECT_NAME}
-    )
-
-  add_executable(mytest
-    src/test.cpp
-    )
-
-  target_link_libraries(mytest
-    ${PROJECT_NAME}
-    )
-
-  if(ENABLE_OPENCV)
-
-    add_executable(test_vio
-      src/test_vio.cpp
-      )
-
-    target_link_libraries(test_vio
-      ${PROJECT_NAME}
-      )
-
-  endif()
+  add_executable(test_timeline src/test_timeline.cpp)
+  target_link_libraries(test_timeline ${PROJECT_NAME})
 
   find_package(ament_cmake_gtest REQUIRED)
   
