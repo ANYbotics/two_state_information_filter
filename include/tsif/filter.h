@@ -348,7 +348,7 @@ class Filter {
     SetMaxWaitTimes<C + 1>(max_wait_time);
   }
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void SetMaxWaitTimes(double max_wait_time) {}
+  void SetMaxWaitTimes(double /*max_wait_time*/) {}
 
   template <int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void SetMinWaitTimes(double min_wait_time) {
@@ -356,7 +356,7 @@ class Filter {
     SetMinWaitTimes<C + 1>(min_wait_time);
   }
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void SetMinWaitTimes(double min_wait_time) {}
+  void SetMinWaitTimes(double /*min_wait_time*/) {}
 
  protected:
   bool is_initialized_;

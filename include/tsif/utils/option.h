@@ -11,7 +11,7 @@ namespace tsif{
 
 template<typename T>
 struct OptionLoaderTraits{
-  static bool Get(T& x, const std::vector<std::string>& data){
+  static bool Get(T& /*x*/, const std::vector<std::string>& /*data*/){
     return false;
   }
 };

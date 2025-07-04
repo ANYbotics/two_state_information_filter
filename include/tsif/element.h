@@ -9,22 +9,22 @@ namespace tsif {
 template <typename T>
 struct ElementTraits {
   static constexpr int kDim = 0;
-  static std::string Print(const T& x) { return ""; }
+  static std::string Print(const T& /*x*/) { return ""; }
   static T Identity() {
     T x;
     return x;
   }
-  static void SetRandom(T& x) {}
-  static void Boxplus(const T& ref, const VecCRef<kDim>& vec, T& out) {
+  static void SetRandom(T& /*x*/) {}
+  static void Boxplus(const T& ref, const VecCRef<kDim>& /*vec*/, T& out) {
     out = ref;  // Must be computable in-place
   }
-  static void Boxminus(const T& in, const T& ref, VecRef<kDim> vec) {}
-  static Mat<kDim, kDim> BoxplusJacInp(const T& in, const VecCRef<kDim>& vec) { return Mat<kDim, kDim>::Identity(); }
-  static Mat<kDim, kDim> BoxplusJacVec(const T& in, const VecCRef<kDim>& vec) { return Mat<kDim, kDim>::Identity(); }
-  static Mat<kDim, kDim> BoxminusJacInp(const T& in, const T& ref) { return Mat<kDim, kDim>::Identity(); }
-  static Mat<kDim, kDim> BoxminusJacRef(const T& in, const T& ref) { return Mat<kDim, kDim>::Identity(); }
-  static Vec<kDim> GetVec(const T& x) { return Vec<kDim>::Zero(); }
-  static void Scale(double w, T& x) {}
+  static void Boxminus(const T& /*in*/, const T& /*ref*/, VecRef<kDim> /*vec*/) {}
+  static Mat<kDim, kDim> BoxplusJacInp(const T& /*in*/, const VecCRef<kDim>& /*vec*/) { return Mat<kDim, kDim>::Identity(); }
+  static Mat<kDim, kDim> BoxplusJacVec(const T& /*in*/, const VecCRef<kDim>& /*vec*/) { return Mat<kDim, kDim>::Identity(); }
+  static Mat<kDim, kDim> BoxminusJacInp(const T& /*in*/, const T& /*ref*/) { return Mat<kDim, kDim>::Identity(); }
+  static Mat<kDim, kDim> BoxminusJacRef(const T& /*in*/, const T& /*ref*/) { return Mat<kDim, kDim>::Identity(); }
+  static Vec<kDim> GetVec(const T& /*x*/) { return Vec<kDim>::Zero(); }
+  static void Scale(double /*w*/, T& /*x*/) {}
 };
 
 template <typename T, int I>
@@ -70,7 +70,7 @@ class Element {
     return Traits::BoxplusJacInp(x_, vec);
   }
   template <bool B = I >= 0, typename std::enable_if<!B>::type* = nullptr>
-  Mat<kDim> BoxplusJacInp(const VecCRef<kDim>& vec) const {
+  Mat<kDim> BoxplusJacInp(const VecCRef<kDim>& /*vec*/) const {
     return Mat<kDim>::Zero();
   }
   template <bool B = I >= 0, typename std::enable_if<B>::type* = nullptr>
@@ -78,7 +78,7 @@ class Element {
     return Traits::BoxplusJacVec(x_, vec);
   }
   template <bool B = I >= 0, typename std::enable_if<!B>::type* = nullptr>
-  Mat<kDim> BoxplusJacVec(const VecCRef<kDim>& vec) const {
+  Mat<kDim> BoxplusJacVec(const VecCRef<kDim>& /*vec*/) const {
     return Mat<kDim>::Zero();
   }
   template <bool B = I >= 0, typename std::enable_if<B>::type* = nullptr>
@@ -152,8 +152,8 @@ class ElementTraits<Vec<N>> {
   static void SetRandom(Vec<N>& x) { x = NormalRandomNumberGenerator::Instance().GetVec<N>(); }
   static void Boxplus(const Vec<N>& in, const VecCRef<kDim>& vec, Vec<N>& out) { out = in + vec; }
   static void Boxminus(const Vec<N>& in, const Vec<N>& ref, VecRef<kDim> vec) { vec = in - ref; }
-  static Mat<kDim> BoxplusJacInp(const Vec<N>& in, const VecCRef<kDim>& vec) { return Mat<kDim>::Identity(); }
-  static Mat<kDim> BoxplusJacVec(const Vec<N>& in, const VecCRef<kDim>& vec) { return Mat<kDim>::Identity(); }
+  static Mat<kDim> BoxplusJacInp(const Vec<N>& /*in*/, const VecCRef<kDim>& /*vec*/) { return Mat<kDim>::Identity(); }
+  static Mat<kDim> BoxplusJacVec(const Vec<N>& /*in*/, const VecCRef<kDim>& /*vec*/) { return Mat<kDim>::Identity(); }
   static Mat<kDim> BoxminusJacInp(const Vec<N>& /*in*/, const Vec<N>& /*ref*/) { return Mat<kDim>::Identity(); }
   static Mat<kDim> BoxminusJacRef(const Vec<N>& /*in*/, const Vec<N>& /*ref*/) { return -Mat<kDim>::Identity(); }
   static Vec<kDim> GetVec(const Vec<N>& x) { return x; }

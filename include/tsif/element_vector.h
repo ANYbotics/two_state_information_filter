@@ -296,7 +296,7 @@ struct MergeTwo<ElementVector<Elements...>, ElementVector<>> {
 };
 template <typename Element, typename... ElementsA, typename... ElementsB>
 struct MergeTwo<ElementVector<ElementsA...>, ElementVector<Element, ElementsB...>> {
-  static_assert(!ElementVector<ElementsA...>::template HasId<Element::kI>() | ElementVector<ElementsA...>::template HasElement<Element>(),
+  static_assert(!ElementVector<ElementsA...>::template HasId<Element::kI>() || ElementVector<ElementsA...>::template HasElement<Element>(),
                 "Conflicting Merge");
   typedef typename MergeTwo<
       typename AddElementTrait<ElementVector<ElementsA...>, Element, !ElementVector<ElementsA...>::template HasElement<Element>()>::Type,
