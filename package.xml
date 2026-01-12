@@ -6,8 +6,8 @@
   <author email="bloeschm@ethz.ch">Michael Bloesch</author>
   <author>Michael Burri</author>
   <author>Thomas Schneider</author>
-  <maintainer email="mwulf@anybotics.com">Maximilian Wulf</maintainer>
-  <maintainer email="ynava@anybotics.com">Yoshua Nava</maintainer>
+  <maintainer email="gzhou@anybotics.com">Guoxiang Zhou</maintainer>
+  <maintainer email="magostinucci@anybotics.com">Mathieu Agostinucci</maintainer>
   <license>BSD</license>
   <url>github.com/ethz-asl/two_state_information_filter</url>
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
