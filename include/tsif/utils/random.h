@@ -8,7 +8,10 @@
 namespace tsif{
 
 /*! \brief Normal Random Number Generator
- *         Singleton class for generating normal random numbers (N(0,1)). Allows setting of seed.
+ *         Per-thread singleton for generating normal random numbers (N(0,1)). Each thread owns an engine
+ *         seeded with 0, so filters can be constructed concurrently on several threads (e.g. batch
+ *         evaluation of parameter sets by an optimizer) without sharing generator state, and every fresh
+ *         thread starts the same sequence. SetSeed only affects the calling thread.
  */
 class NormalRandomNumberGenerator{
  public:
@@ -27,7 +30,7 @@ class NormalRandomNumberGenerator{
     return n;
   }
   static NormalRandomNumberGenerator& Instance(){
-    static NormalRandomNumberGenerator instance;
+    thread_local NormalRandomNumberGenerator instance;
     return instance;
   }
   std::default_random_engine& GetGenerator(){
