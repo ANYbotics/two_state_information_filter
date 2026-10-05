@@ -89,6 +89,7 @@ if(BUILD_TESTING)
   ament_add_gtest(test_${PROJECT_NAME}
     test/empty_test.cpp
     test/random_test.cpp
+    test/pose_update_test.cpp
   )
   target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
 

@@ -49,6 +49,7 @@ class PoseUpdate: public PoseUpdateBase<OUT_POS,OUT_ATT,STA_IrIB,STA_qIB,STA_IrI
   AttitudeUpdate<OUT_ATT,STA_qIB,STA_qIJ,STA_qBV> attUpd_;
   PoseUpdate(): Base(false,false,false){}
   int EvalRes(typename Output::Ref out, const typename Previous::CRef pre, const typename Current::CRef cur){
+    ForwardMeasurement();
     posUpd_.EvalRes(out,pre,cur);
     attUpd_.EvalRes(out,pre,cur);
     return 0;
@@ -57,10 +58,20 @@ class PoseUpdate: public PoseUpdateBase<OUT_POS,OUT_ATT,STA_IrIB,STA_qIB,STA_IrI
     return 0;
   }
   int JacCur(MatRefX J, const typename Previous::CRef pre, const typename Current::CRef cur){
+    ForwardMeasurement();
     posUpd_.JacCur(J.block(Output::Start(OUT_POS),0,3,cur.Dim()),pre,cur);
     attUpd_.JacCur(J.block(Output::Start(OUT_ATT),0,3,cur.Dim()),pre,cur);
     return 0;
   }
+ private:
+  // Hands the pose measurement to the sub-residuals, reallocating only when the filter set a new one.
+  void ForwardMeasurement(){
+    if(meas_ == forwardedMeas_) return;
+    posUpd_.meas_ = std::make_shared<const MeasPos>(meas_->GetPos());
+    attUpd_.meas_ = std::make_shared<const MeasAtt>(meas_->GetAtt());
+    forwardedMeas_ = meas_;
+  }
+  std::shared_ptr<const MeasPose> forwardedMeas_;
 };
 
 } // namespace tsif
