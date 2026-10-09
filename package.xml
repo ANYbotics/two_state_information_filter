@@ -8,6 +8,7 @@
   <author>Thomas Schneider</author>
   <maintainer email="gzhou@anybotics.com">Guoxiang Zhou</maintainer>
   <maintainer email="magostinucci@anybotics.com">Mathieu Agostinucci</maintainer>
+  <maintainer email="ehourdakis@anybotics.com">Emmanouil Hourdakis</maintainer>
   <license>BSD</license>
   <url>github.com/ethz-asl/two_state_information_filter</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
