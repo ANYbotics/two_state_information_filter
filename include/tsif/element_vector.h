@@ -1,10 +1,24 @@
 #ifndef TSIF_ELEMENT_VECTOR_H_
 #define TSIF_ELEMENT_VECTOR_H_
 
+#include <array>
+#include <stdexcept>
+#include <utility>
+
 #include "tsif/element.h"
 #include "tsif/utils/common.h"
 
 namespace tsif {
+
+// Start index of the element with index I, from a fixed list of (element index, start) pairs. A linear search over a
+// few entries is cheaper than a node-based map, and the lists are built in every element vector reference.
+template <std::size_t N>
+int LookupStart(const std::array<std::pair<int, int>, N>& starts, int I) {
+  for (const auto& entry : starts) {
+    if (entry.first == I) return entry.second;
+  }
+  throw std::out_of_range("element index without a start");
+}
 
 template <typename... Elements>
 struct DimensionTrait;
@@ -162,7 +176,7 @@ class ElementVectorRef : public ElementVectorBase<ElementVectorRef<Elements...>,
   typedef std::tuple<Elements...> Tuple;
 
   std::tuple<Elements&...> elements_;
-  const std::map<int, int> startMap_;
+  const std::array<std::pair<int, int>, sizeof...(Elements)> startMap_;
   const int Dim_;
 
  public:
@@ -170,7 +184,7 @@ class ElementVectorRef : public ElementVectorBase<ElementVectorRef<Elements...>,
   template <typename OtherDerived, typename... OtherElements>
   ElementVectorRef(ElementVectorBase<OtherDerived, OtherElements...>& elementVector)
       : elements_(elementVector.template GetElement<Elements::kI>()...),
-        startMap_{std::make_pair(Elements::kI, elementVector.Start(Elements::kI))...},
+        startMap_{{std::make_pair(Elements::kI, elementVector.Start(Elements::kI))...}},
         Dim_(elementVector.Dim()) {}
   ~ElementVectorRef() = default;
 
@@ -190,7 +204,7 @@ class ElementVectorRef : public ElementVectorBase<ElementVectorRef<Elements...>,
   const typename std::tuple_element<Base::template GetC<I>(), Tuple>::type& GetElement() const {
     return std::get<Base::template GetC<I>()>(elements_);
   }
-  int Start(int I) const { return startMap_.at(I); }
+  int Start(int I) const { return LookupStart(startMap_, I); }
   int Dim() const { return Dim_; }
 };
 
@@ -201,7 +215,7 @@ class ElementVectorConstRef : public ElementVectorBase<ElementVectorConstRef<Ele
   typedef std::tuple<Elements...> Tuple;
 
   std::tuple<const Elements&...> elements_;
-  const std::map<int, int> startMap_;
+  const std::array<std::pair<int, int>, sizeof...(Elements)> startMap_;
   const int Dim_;
 
  public:
@@ -209,7 +223,7 @@ class ElementVectorConstRef : public ElementVectorBase<ElementVectorConstRef<Ele
   template <typename OtherDerived, typename... OtherElements>
   ElementVectorConstRef(const ElementVectorBase<OtherDerived, OtherElements...>& elementVector)
       : elements_(elementVector.template GetElement<Elements::kI>()...),
-        startMap_{std::make_pair(Elements::kI, elementVector.Start(Elements::kI))...},
+        startMap_{{std::make_pair(Elements::kI, elementVector.Start(Elements::kI))...}},
         Dim_(elementVector.Dim()) {}
   ~ElementVectorConstRef() = default;
 
@@ -221,7 +235,7 @@ class ElementVectorConstRef : public ElementVectorBase<ElementVectorConstRef<Ele
   const typename std::tuple_element<Base::template GetC<I>(), Tuple>::type& GetElement() const {
     return std::get<Base::template GetC<I>()>(elements_);
   }
-  int Start(int I) const { return startMap_.at(I); }
+  int Start(int I) const { return LookupStart(startMap_, I); }
   int Dim() const { return Dim_; }
 };
 

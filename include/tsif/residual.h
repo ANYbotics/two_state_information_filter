@@ -1,6 +1,8 @@
 #ifndef TSIF_RESIDUAL_H_
 #define TSIF_RESIDUAL_H_
 
+#include <vector>
+
 #include "tsif/model.h"
 #include "tsif/utils/common.h"
 
@@ -76,10 +78,11 @@ class Residual : public Model<Residual<Out, Pre, Cur, Meas>, Out, Pre, Cur> {
   virtual void MergeMeasurements(const TimePoint& t0, const TimePoint& t1, const TimePoint& t2, std::shared_ptr<const Meas>& /*m0*/,
                                  std::shared_ptr<const Meas>& m1, std::shared_ptr<const Meas>& m2) const {
     if (isMergeable_) {
-      std::shared_ptr<Meas> newMeas = std::make_shared<Meas>();
+      std::shared_ptr<Meas> newMeas = merged_.Acquire();
       Vec<Meas::Dim()> dif;
       m1->Boxminus(*m2, dif);
-      m2->Boxplus(toSec(t1 - t0) / toSec(t2 - t0) * dif, *newMeas);
+      const Vec<Meas::Dim()> scaledDif = toSec(t1 - t0) / toSec(t2 - t0) * dif;
+      m2->Boxplus(scaledDif, *newMeas);
       m2 = newMeas;
     } else {
       assert(false);
@@ -109,6 +112,31 @@ class Residual : public Model<Residual<Out, Pre, Cur, Meas>, Out, Pre, Cur> {
   }
   template <int OUT, int STA, typename std::enable_if<(STA < 0 | OUT < 0)>::type* = nullptr>
   void SetJacPre(MatRefX /*J*/, const typename Previous::CRef /*pre*/, MatCRefX /*Jsub*/) {}
+
+ private:
+  //! The measurements MergeMeasurements creates. One that no timeline holds any more is reused, so merging does not
+  //! allocate after a warm-up. A copied residual starts with its own empty pool.
+  class MergedPool {
+   public:
+    MergedPool() = default;
+    MergedPool(const MergedPool& /*other*/) {}
+    MergedPool& operator=(const MergedPool& /*other*/) { return *this; }
+    //! A measurement only this pool holds, reset to a default-constructed one.
+    std::shared_ptr<Meas> Acquire() {
+      for (auto& m : pool_) {
+        if (m.use_count() == 1) {
+          *m = Meas();
+          return m;
+        }
+      }
+      pool_.push_back(std::make_shared<Meas>());
+      return pool_.back();
+    }
+
+   private:
+    std::vector<std::shared_ptr<Meas>> pool_;
+  };
+  mutable MergedPool merged_;
 };
 
 }  // namespace tsif

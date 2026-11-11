@@ -26,6 +26,7 @@ set(
 )
 
 find_package(ament_cmake REQUIRED)
+find_package(Boost REQUIRED)
 
 # NOTE(apoghosov): what I am trying to do here is to port to ROS2 the best way possible but I can
 # not really take care about fixing everyting comming from ROS1. So, I leave it up maintainers to
@@ -37,7 +38,7 @@ endforeach()
 
 add_library(${PROJECT_NAME} INTERFACE)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen Boost::headers)
 
 target_include_directories(
   ${PROJECT_NAME}
@@ -67,7 +68,7 @@ install(
 )
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${PACKAGE_DEPENDENCIES})
+ament_export_dependencies(${PACKAGE_DEPENDENCIES} Boost)
 
 #############
 ## Testing ##
@@ -92,8 +93,13 @@ if(BUILD_TESTING)
     test/empty_test.cpp
     test/random_test.cpp
     test/pose_update_test.cpp
+    test/timeline_test.cpp
   )
   target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME})
+
+  find_package(malloc_capture REQUIRED)
+  malloc_capture_add_test(test_${PROJECT_NAME}_no_allocation test/no_allocation_test.cpp)
+  target_link_libraries(test_${PROJECT_NAME}_no_allocation ${PROJECT_NAME})
 
   ###################
   ## Code_coverage ##

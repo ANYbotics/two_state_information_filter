@@ -17,7 +17,10 @@ class Filter {
   ResidualTuple residuals_;
   TimelineTuple timelines_;
 
-  Filter() : timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1), fromSec(0.0))...), I_(State::Dim(), State::Dim()) {
+  Filter()
+      : timelines_(Timeline<typename Residuals::Measurement>(fromSec(0.1), fromSec(0.0))...),
+        I_(State::Dim(), State::Dim()),
+        Ident_(MatX::Identity(State::Dim(), State::Dim())) {
     is_initialized_ = false;
     include_max_ = false;
     max_iter_ = 1;
@@ -88,26 +91,26 @@ class Filter {
   }
 
   template <int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  void GetTimeList(std::set<TimePoint>& times, TimePoint maxUpdateTime, bool includeMax) const {
+  void GetTimeList(TimeSet& times, TimePoint maxUpdateTime, bool includeMax) const {
     if (!std::get<C>(residuals_).isMergeable_) {
       std::get<C>(timelines_).GetAllInRange(times, time_, maxUpdateTime);
     }
     GetTimeList<C + 1>(times, maxUpdateTime, includeMax);
   }
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void GetTimeList(std::set<TimePoint>& times, TimePoint maxUpdateTime, bool includeMax) const {
+  void GetTimeList(TimeSet& times, TimePoint maxUpdateTime, bool includeMax) const {
     if (includeMax && maxUpdateTime > time_) {
       times.insert(maxUpdateTime);
     }
   }
 
   template <int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
-  void SplitAndMerge(TimePoint time, const std::set<TimePoint>& times) {
+  void SplitAndMerge(TimePoint time, const TimeSet& times) {
     std::get<C>(timelines_).SplitAndMerge(time, times, std::get<C>(residuals_));
     SplitAndMerge<C + 1>(time, times);
   }
   template <int C = 0, typename std::enable_if<(C >= kN)>::type* = nullptr>
-  void SplitAndMerge(TimePoint /*time*/, const std::set<TimePoint>& /*times*/) {}
+  void SplitAndMerge(TimePoint /*time*/, const TimeSet& /*times*/) {}
 
   template <int C = 0, typename std::enable_if<(C < kN)>::type* = nullptr>
   void Clean(TimePoint time) {
@@ -148,12 +151,12 @@ class Filter {
     TimePoint current = GetCurrentTime();
     TimePoint maxUpdateTime = GetMaxUpdateTime(current);
 
-    std::set<TimePoint> times;
-    GetTimeList(times, maxUpdateTime, include_max_);
-    SplitAndMerge(time_, times);
+    times_.clear();
+    GetTimeList(times_, maxUpdateTime, include_max_);
+    SplitAndMerge(time_, times_);
 
     // Carry out updates
-    for (const auto& t : times) {
+    for (const auto& t : times_) {
       MakeUpdateStep(t);
     }
     Clean(time_);
@@ -176,7 +179,10 @@ class Filter {
     JacCur_.setZero();
 
     weightedDelta_ = th_iter_;
-    MatX newInf(State::Dim(), State::Dim());
+    newInf_.resize(State::Dim(), State::Dim());
+    if (J_.rows() != innDim) {
+      J_.setIdentity(innDim, innDim);
+    }
     for (iter_ = 0; iter_ < max_iter_ && weightedDelta_ >= th_iter_; iter_++) {
       ConstructProblem(0);
       TSIF_LOG("Innovation:\t" << y_.transpose());
@@ -184,37 +190,49 @@ class Filter {
       TSIF_LOG("JacCur:\n" << JacCur_);
 
       // Compute Kalman Update // TODO use more efficient form
-      MatX D = I_ + JacPre_.transpose() * JacPre_;
-      MatX J(innDim, innDim);
-      J.setIdentity();
+      // The scratch matrices are members, so the steps below write into their existing storage. The
+      // products use noalias() and the expressions keep the operand order of the original formulation.
+      D_.noalias() = JacPre_.transpose() * JacPre_;
+      D_ += I_;
 #if TSIF_VERBOSE > 0
-      Eigen::JacobiSVD<MatX> svdD(D);
+      Eigen::JacobiSVD<MatX> svdD(D_);
       const double condD = svdD.singularValues()(0) / svdD.singularValues()(svdD.singularValues().size() - 1);
       TSIF_LOG("D condition number:\n" << condD);
 #endif
-      MatX S = JacCur_.transpose() * (J - JacPre_ * D.inverse() * JacPre_.transpose());
-      newInf = S * JacCur_;
-      newInf = 0.5 * (newInf + newInf.transpose().eval());
-      Eigen::LDLT<MatX> I_LDLT(newInf);
+      DLU_.compute(D_);
+      // Same arithmetic as DLU_.inverse(), which Eigen evaluates as solve(identity) but copies the decomposition first.
+      DInv_ = DLU_.solve(Ident_);
+      JacPreDInv_.noalias() = JacPre_ * DInv_;
+      JDJt_.noalias() = JacPreDInv_ * JacPre_.transpose();
+      JDJt_ = J_ - JDJt_;
+      S_.noalias() = JacCur_.transpose() * JDJt_;
+      newInf_.noalias() = S_ * JacCur_;
+      // The transpose is copied first, so that the symmetrisation does not read entries it has already overwritten.
+      transposedInf_ = newInf_.transpose();
+      newInf_ = 0.5 * (newInf_ + transposedInf_);
+      ldlt_.compute(newInf_);
 #if TSIF_VERBOSE > 0
-      Eigen::JacobiSVD<MatX> svdI(newInf);
+      Eigen::JacobiSVD<MatX> svdI(newInf_);
       const double condI = svdI.singularValues()(0) / svdI.singularValues()(svdI.singularValues().size() - 1);
       TSIF_LOG("I condition number:\n" << condI);
 #endif
-      TSIF_LOGEIF((I_LDLT.info() != Eigen::Success), "Computation of Iinv failed");
-      VecX dx = -I_LDLT.solve(S * y_);
+      TSIF_LOGEIF((ldlt_.info() != Eigen::Success), "Computation of Iinv failed");
+      Sy_.noalias() = S_ * y_;
+      dx_ = ldlt_.solve(Sy_);
+      dx_ = -dx_;
 
       // Apply Kalman Update
       State newState = curLinState_;
-      curLinState_.Boxplus(dx, newState);
+      curLinState_.Boxplus(dx_, newState);
       curLinState_ = newState;
-      weightedDelta_ = sqrt((dx.dot(newInf * dx)) / dx.size());
-      TSIF_LOG("iter: " << iter_ << "\tw: " << sqrt((dx.dot(dx)) / dx.size()) << "\twd: " << weightedDelta_);
+      Ndx_.noalias() = newInf_ * dx_;
+      weightedDelta_ = sqrt((dx_.dot(Ndx_)) / dx_.size());
+      TSIF_LOG("iter: " << iter_ << "\tw: " << sqrt((dx_.dot(dx_)) / dx_.size()) << "\twd: " << weightedDelta_);
     }
     TSIF_LOGWIF(weightedDelta_ >= th_iter_, "Reached maximal iterations:" << iter_);
 
     state_ = curLinState_;
-    I_ = newInf;
+    I_ = newInf_;
     TSIF_LOG("State after Update:\n" << state_.Print());
     TSIF_LOG("Information matrix:\n" << I_);
 
@@ -369,6 +387,22 @@ class Filter {
   VecX y_;
   MatX JacPre_;
   MatX JacCur_;
+  TimeSet times_;
+  // Scratch storage of MakeUpdateStep. Kept as members, the iterations reuse their storage instead of allocating it.
+  MatX J_;
+  MatX D_;
+  Eigen::PartialPivLU<MatX> DLU_;
+  MatX Ident_;
+  MatX DInv_;
+  MatX JacPreDInv_;
+  MatX JDJt_;
+  MatX S_;
+  MatX newInf_;
+  MatX transposedInf_;
+  Eigen::LDLT<MatX> ldlt_;
+  VecX Sy_;
+  VecX dx_;
+  VecX Ndx_;
   int max_iter_;
   int iter_;
   double weightedDelta_;

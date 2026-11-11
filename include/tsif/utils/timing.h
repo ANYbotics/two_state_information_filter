@@ -4,11 +4,15 @@
 #include <iostream>
 #include <chrono>
 
+#include <boost/container/flat_set.hpp>
+
 namespace tsif{
 
 typedef std::chrono::high_resolution_clock Clock;
 typedef Clock::time_point TimePoint;
 typedef Clock::duration Duration;
+//! Sorted, unique times. Its storage is kept by the owner between updates, unlike the nodes of a std::set.
+typedef boost::container::flat_set<TimePoint> TimeSet;
 inline Duration fromSec(const double sec){
   return std::chrono::duration_cast < Duration
       > (std::chrono::duration<double>(sec));

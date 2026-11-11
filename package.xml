@@ -13,7 +13,9 @@
   <url>github.com/ethz-asl/two_state_information_filter</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>eigen</depend>
+  <depend>boost</depend>
   <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>malloc_capture</test_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>
